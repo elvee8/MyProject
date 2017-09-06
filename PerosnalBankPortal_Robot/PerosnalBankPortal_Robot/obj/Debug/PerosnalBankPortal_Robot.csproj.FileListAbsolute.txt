@@ -10,3 +10,15 @@ D:\Project\CMB\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\Peros
 D:\Project\CMB\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\PerosnalBankPortal_Robot.pdb
 D:\Project\CMB\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\Midas.SendKeyMessage.dll
 D:\Project\CMB\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\Midas.SendKeyMessage.pdb
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\PerosnalBankPortal_Robot.exe.config
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\PerosnalBankPortal_Robot.exe
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\PerosnalBankPortal_Robot.pdb
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\AutoItX3.Assembly.dll
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\Midas.SendKeyMessage.dll
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\AutoItX3.Assembly.xml
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\bin\Debug\Midas.SendKeyMessage.pdb
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\PerosnalBankPortal_Robot.csprojResolveAssemblyReference.cache
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\Interop.AutoItX3Lib.dll
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\PerosnalBankPortal_Robot.csproj.ResolveComReference.cache
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\PerosnalBankPortal_Robot.exe
+D:\MyProject\PerosnalBankPortal_Robot\PerosnalBankPortal_Robot\obj\Debug\PerosnalBankPortal_Robot.pdb

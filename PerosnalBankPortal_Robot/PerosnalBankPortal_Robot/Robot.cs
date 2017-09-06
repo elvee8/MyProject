@@ -1,12 +1,12 @@
-﻿using System;
-namespace PerosnalBankPortal_Robot
+﻿namespace PerosnalBankPortal_Robot
 {
     using AutoIt;
     using SendMessageKey;
+    using System;
     using System.Drawing;
     using System.Threading;
 
-    internal class Program
+    internal class Robot
     {
         private const string Transferpassword = "103830";
         private const string Userpass = "048627";
@@ -24,19 +24,20 @@ namespace PerosnalBankPortal_Robot
 
                 LogIn();
 
-                if (IsMainFormActivated())
-                {
-                    SetFormPosition();
+                IsMainFormActivated();
+                
+                SetFormPosition();
 
-                    Transfer();
+                Transfer();
 
-                    LogOut();
-                }
+                LogOut();
+                
             }
             else
             {
                 Console.WriteLine("Application is not Running");
             }
+            Console.Read();
         }
 
         private static void SetPassword(IntPtr mainForm, IntPtr txtpass)
@@ -59,7 +60,7 @@ namespace PerosnalBankPortal_Robot
             Thread.Sleep(2000);
         }
 
-        private static bool IsMainFormActivated()
+        private static void IsMainFormActivated()
         {
             var i = 0;
             while (i < 1000)
@@ -71,12 +72,13 @@ namespace PerosnalBankPortal_Robot
                         AutoItX.ControlGetHandle(_mainForm, "[CLASS:TCMBStyleComboBox72; INSTANCE:1]")) == "功能")
                 {
                     Console.WriteLine("Main Page is now Active.");
-                    return true;
+                    return;
                 }
                 Console.WriteLine("Waiting for Main Page");
                 i++;
             }
-            return false;
+
+            throw new Exception("Cant Find Main Page!");
         }
 
         private static void SetFormPosition()
@@ -113,11 +115,12 @@ namespace PerosnalBankPortal_Robot
                     Thread.Sleep(4000);
                     Console.WriteLine("Successfully LogIn.. ");
                     Console.WriteLine("Closing Login Window.");
-                    break;
+                    return;
                 }
                 Console.WriteLine("Logging In.");
                 i++;
             }
+            throw new Exception("Log In Error!");
         }
 
         private static void DoLogIn(IntPtr mainForm, IntPtr txtpass)
@@ -144,28 +147,27 @@ namespace PerosnalBankPortal_Robot
             Console.WriteLine("Click Log Out");
             AutoItX.MouseClick("LEFT", _btnLogOutPossitionX, _btnLogOutPossitionY);
 
-            if (ConfirmationMessageFindByClassName("TAppExitForm", 112, 194))
+            if (ConfirmationMessageFindByClassName("TAppExitForm", new Tuple<int, int>(112, 194)))
                 Console.WriteLine("Are you sure?, OK...");
 
-            if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", 253, 219))
+            if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", new Tuple<int, int>(253, 219)))
                 Console.WriteLine("Remove Device?, OK...");
 
-            if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", 253, 193))
+            if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", new Tuple<int, int>(253, 193)))
                 Console.WriteLine("Last Warning Remove Device?, OK...");
 
             Console.WriteLine("Successfully Logout.");
         }
 
-        private static bool ConfirmationMessageFindByClassName(string classname, int buttonLocationX,
-            int buttonLocationY)
+        private static bool ConfirmationMessageFindByClassName(string classname, Tuple<int, int> location)
         {
             if (AutoItX.WinActivate($"[CLASS:{classname}]") != 1) return false;
 
             var exitForm = AutoItX.WinGetHandle($"[CLASS:{classname}]");
 
             var windowsExitmsgPosition = AutoItX.WinGetPos(exitForm);
-            var exitPosX = windowsExitmsgPosition.X + buttonLocationX;
-            var exitPosY = windowsExitmsgPosition.Y + buttonLocationY;
+            var exitPosX = windowsExitmsgPosition.X + location.Item1;
+            var exitPosY = windowsExitmsgPosition.Y + location.Item2;
 
             AutoItX.MouseClick("LEFT", exitPosX, exitPosY);
 
@@ -181,6 +183,27 @@ namespace PerosnalBankPortal_Robot
             return value * multiplier;
         }
 
+        private static void WaitForTransferPage()
+        {
+            var i = 0;
+            while (i < 1000)
+            {
+                AutoItX.MouseClick("LEFT", _windowsPosition.X + 334, _windowsPosition.Y + 470);
+                Console.WriteLine("Click on Transfer Button.");
+                Thread.Sleep(2000);
+                var inputMainPanel = AutoItX.ControlGetHandle(_mainForm, "InputMainPanel");
+                if (AutoItX.ControlFocus(_mainForm, inputMainPanel) == 1)
+                {
+                    Console.WriteLine("Transfer page Found!");
+                    return;
+                }
+                Console.WriteLine("Waiting for Transfer Page");
+                i++;
+            }
+
+            throw new Exception("Transfer Page Error!");
+        }
+
         private static void FillUpTransferForm(IntPtr inputMainPanel)
         {
             var toAccountNumber = "6214837694277025";
@@ -194,85 +217,64 @@ namespace PerosnalBankPortal_Robot
 
             //Click Transger
 
-            if (AutoItX.WinActivate(_mainForm) == 1)
-            {
-                var i = 0;
-                while (i < 1000)
-                {
-                    AutoItX.MouseClick("LEFT", _windowsPosition.X + 334, _windowsPosition.Y + 470);
-                    Console.WriteLine("Click on Transfer Button.");
-                    Thread.Sleep(2000);
-                    inputMainPanel = AutoItX.ControlGetHandle(_mainForm, "InputMainPanel");
-                    if (AutoItX.ControlFocus(_mainForm, inputMainPanel) == 1)
-                    {
-                        Console.WriteLine("Transfer page Found!");
-                        break;
-                    }
-                    Console.WriteLine("Waiting for Transfer Page");
-                    i++;
-                }
+            if (AutoItX.WinActivate(_mainForm) != 1) return;
 
-                var inputMainPanelPosition = AutoItX.ControlGetPos(_mainForm, inputMainPanel);
+            WaitForTransferPage();
 
-                var elemementPositionX = _windowsPosition.X + inputMainPanelPosition.X;
-                var elemementPositionY = _windowsPosition.Y + inputMainPanelPosition.Y;
+            var inputMainPanelPosition = AutoItX.ControlGetPos(_mainForm, inputMainPanel);
 
-                //Account Name
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                var txttoAccount = AutoItX.ControlGetHandle(_mainForm, "[CLASS:Edit; INSTANCE:1]");
-                AutoItX.ControlSetText(_mainForm, txttoAccount, toAccountName);
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 35);
-                Thread.Sleep(GetRandomDelay(1000));
+            var elemementPositionX = _windowsPosition.X + inputMainPanelPosition.X;
+            var elemementPositionY = _windowsPosition.Y + inputMainPanelPosition.Y;
 
-                //Account Number
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 75);
-                AutoItX.Send(toAccountNumber);
-                Thread.Sleep(GetRandomDelay(1000));
+            //Account Name
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            var txttoAccount = AutoItX.ControlGetHandle(_mainForm, "[CLASS:Edit; INSTANCE:1]");
+            AutoItX.ControlSetText(_mainForm, txttoAccount, toAccountName);
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 35);
+            Thread.Sleep(GetRandomDelay(1000));
 
-                //Bank
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 120);
-                Thread.Sleep(GetRandomDelay(1000));
+            //Account Number
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 75);
+            AutoItX.Send(toAccountNumber);
+            Thread.Sleep(GetRandomDelay(1000));
 
-                //Click Balance
-                //AutoItX.WinActivate(_mainForm);
-                //AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                //AutoItX.MouseClick("LEFT", elemementPositionX + 150, elemementPositionY + 195);
-                //Thread.Sleep(GetRandomDelay(1000));
+            //Bank
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 120);
+            Thread.Sleep(GetRandomDelay(1000));
+                
+            //Amount
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 230);
+            AutoItX.Send(amount);
+            Thread.Sleep(GetRandomDelay(1000));
 
-                //Amount
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 230);
-                AutoItX.Send(amount);
-                Thread.Sleep(GetRandomDelay(1000));
+            //transaction Remarks
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 285);
+            AutoItX.Send(transactionReference);
+            Thread.Sleep(GetRandomDelay(1000));
 
-                //transaction Remarks
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 285);
-                AutoItX.Send(transactionReference);
-                Thread.Sleep(GetRandomDelay(1000));
+            //transaction ID
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 335);
+            AutoItX.Send(transactionReferenceId);
+            Thread.Sleep(GetRandomDelay(1000));
 
-                //transaction ID
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 335);
-                AutoItX.Send(transactionReferenceId);
-                Thread.Sleep(GetRandomDelay(1000));
+            AutoItX.WinActivate(_mainForm);
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 380);
+            Thread.Sleep(GetRandomDelay(1000));
 
-                AutoItX.WinActivate(_mainForm);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 380);
-                Thread.Sleep(GetRandomDelay(1000));
-
-                if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", 285, 180))
-                    Console.WriteLine("Error FillUpTransferForm");
-            }
+            if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", new Tuple<int, int>(285, 180)))
+                Console.WriteLine("Error FillUpTransferForm");
         }
 
         private static bool IsValidTransferForm()
@@ -283,7 +285,7 @@ namespace PerosnalBankPortal_Robot
             {
                 Thread.Sleep(2000);
 
-                if (ConfirmationMessageFindByClassName("TErrorWithHelpForm", 200, 200))
+                if (ConfirmationMessageFindByClassName("TErrorWithHelpForm", new Tuple<int, int>(200, 200)))
                 {
                     Console.WriteLine("ERROR ON TRANSFER PAGE VALUES");
                     break;
@@ -347,9 +349,9 @@ namespace PerosnalBankPortal_Robot
                 AutoItX.MouseClick("LEFT", elemementPositionX + 80, elemementPositionY + 80);
                 Thread.Sleep(2000);
 
-                if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", 200, 180))
+                if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", new Tuple<int, int>(200, 180)))
                     Console.WriteLine("Confirmation Error On Transfer Transaction!");
-                if (ConfirmationMessageFindByClassName("TErrorWithHelpForm", 200, 190))
+                if (ConfirmationMessageFindByClassName("TErrorWithHelpForm", new Tuple<int, int>(200, 190)))
                     Console.WriteLine("Confirmation Error On Transfer Transaction!");
             }
         }
