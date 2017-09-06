@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using AutoIt;
 
 namespace ConsoleApp_ForAutoItTest
 {
@@ -10,11 +12,9 @@ namespace ConsoleApp_ForAutoItTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("123");
-
-
-            
-            Console.ReadKey();
+            //TestAutoItX.Main1(args);
+            TestCmb.Main1(args);
         }
+        
     }
 }
