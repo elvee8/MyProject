@@ -208,8 +208,6 @@
         {
             var toAccountNumber = "6214837694277025";
             var toAccountName = "吕文斌";
-            //var fromAccountNumber = "";
-            //var fromAccountName = "";
             var transactionReferenceId = "12345678912";
             var transactionReference = "test Remarks";
             var amount = "1";
@@ -217,65 +215,85 @@
 
             //Click Transger
 
-            if (AutoItX.WinActivate(_mainForm) != 1) return;
+            if (AutoItX.WinActivate(_mainForm) == 1)
+            {
+                var i = 0;
+                while (i < 1000)
+                {
+                    AutoItX.MouseClick("LEFT", _windowsPosition.X + 300, _windowsPosition.Y + 470);
+                    Console.WriteLine("Click on Transfer Button.");
+                    Thread.Sleep(2000);
+                    inputMainPanel = AutoItX.ControlGetHandle(_mainForm, "[CLASS:TTransferToCMBFrm]");
+                    if (AutoItX.ControlFocus(_mainForm, inputMainPanel) == 1)
+                    {
+                        Console.WriteLine("Transfer page Found!");
+                        break;
+                    }
+                    Console.WriteLine("Waiting for Transfer Page");
+                    i++;
+                }
 
-            WaitForTransferPage();
+                var inputMainPanelPosition = AutoItX.ControlGetPos(_mainForm, inputMainPanel);
 
-            var inputMainPanelPosition = AutoItX.ControlGetPos(_mainForm, inputMainPanel);
+                var elemementPositionX = _windowsPosition.X + inputMainPanelPosition.X;
+                var elemementPositionY = _windowsPosition.Y + inputMainPanelPosition.Y;
 
-            var elemementPositionX = _windowsPosition.X + inputMainPanelPosition.X;
-            var elemementPositionY = _windowsPosition.Y + inputMainPanelPosition.Y;
+                //To Account Name
+                AutoItX.WinActivate(_mainForm);
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                var txttoAccount = AutoItX.ControlGetHandle(_mainForm, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
+                AutoItX.ControlSetText(_mainForm, txttoAccount, toAccountName);
+                Thread.Sleep(GetRandomDelay(1000));
 
-            //Account Name
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            var txttoAccount = AutoItX.ControlGetHandle(_mainForm, "[CLASS:Edit; INSTANCE:1]");
-            AutoItX.ControlSetText(_mainForm, txttoAccount, toAccountName);
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 35);
-            Thread.Sleep(GetRandomDelay(1000));
+                //To Account Number
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                var txttoAccountNumber = AutoItX.ControlGetHandle(_mainForm, "[CLASS:TCMBStyleEdit; INSTANCE:3]");
+                AutoItX.ControlSetText(_mainForm, txttoAccountNumber, toAccountNumber);
+                Thread.Sleep(GetRandomDelay(1000));
 
-            //Account Number
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 75);
-            AutoItX.Send(toAccountNumber);
-            Thread.Sleep(GetRandomDelay(1000));
+                ////To Bank
+                //AutoItX.WinActivate(_mainForm);
+                //AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                //AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 120);
+                //Thread.Sleep(GetRandomDelay(1000));
 
-            //Bank
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 120);
-            Thread.Sleep(GetRandomDelay(1000));
-                
-            //Amount
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 230);
-            AutoItX.Send(amount);
-            Thread.Sleep(GetRandomDelay(1000));
+                //Click Balance
+                //AutoItX.WinActivate(_mainForm);
+                //AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                //AutoItX.MouseClick("LEFT", elemementPositionX + 150, elemementPositionY + 195);
+                //Thread.Sleep(GetRandomDelay(1000));
 
-            //transaction Remarks
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 285);
-            AutoItX.Send(transactionReference);
-            Thread.Sleep(GetRandomDelay(1000));
+                //Amount
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                var txttoAmount = AutoItX.ControlGetHandle(_mainForm, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
+                AutoItX.ControlSetText(_mainForm, txttoAmount, amount);
+                Thread.Sleep(GetRandomDelay(1000));
 
-            //transaction ID
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 335);
-            AutoItX.Send(transactionReferenceId);
-            Thread.Sleep(GetRandomDelay(1000));
+                //transaction ID
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                var txttoReferenceId = AutoItX.ControlGetHandle(_mainForm, "[CLASS:TCMBStyleEdit; INSTANCE:5]");
+                AutoItX.ControlSetText(_mainForm, txttoReferenceId, transactionReferenceId);
+                Thread.Sleep(GetRandomDelay(1000));
 
-            AutoItX.WinActivate(_mainForm);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", elemementPositionX + 200, elemementPositionY + 380);
-            Thread.Sleep(GetRandomDelay(1000));
+                //transaction refernce
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                var txttoReference = AutoItX.ControlGetHandle(_mainForm, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
+                AutoItX.ControlSetText(_mainForm, txttoReference, transactionReference);
+                Thread.Sleep(GetRandomDelay(1000));
 
-            if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", new Tuple<int, int>(285, 180)))
-                Console.WriteLine("Error FillUpTransferForm");
+                AutoItX.WinActivate(_mainForm);
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                AutoItX.MouseClick("LEFT", elemementPositionX + 330, elemementPositionY + 410);
+                Thread.Sleep(GetRandomDelay(1000));
+
+                if (ConfirmationMessageFindByClassName("TErrorWithHelpForm", new Tuple<int, int>(190, 190)))
+                    throw new Exception("Error Transfer details");
+
+                if (ConfirmationMessageFindByClassName("TPbBaseMsgForm", new Tuple<int, int>(290, 150)))
+                    Console.WriteLine("Reciepient accouunt confirmation.");
+            }
         }
+
 
         private static bool IsValidTransferForm()
         {
