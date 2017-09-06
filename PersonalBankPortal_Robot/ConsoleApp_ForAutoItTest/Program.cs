@@ -10,6 +10,11 @@ namespace ConsoleApp_ForAutoItTest
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("123");
+
+
+            
+            Console.ReadKey();
         }
     }
 }
