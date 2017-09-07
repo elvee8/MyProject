@@ -48,7 +48,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestCmb.cs" />
+    <Compile Include="RobotContext.cs" />
+    <Compile Include="RobotResult.cs" />
+    <Compile Include="RobotStatus.cs" />
+    <Compile Include="RobotCMB.cs" />
+    <Compile Include="RobotCMBTest.cs" />
     <Compile Include="TestAutoItX.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -13,7 +13,7 @@ namespace ConsoleApp_ForAutoItTest
         static void Main(string[] args)
         {
             //TestAutoItX.Main1(args);
-            TestCmb.Main1(args);
+            RobotCMBTest.Main1(args);
         }
         
     }
