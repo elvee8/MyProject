@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -16,7 +17,12 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("1234");
-            Run();
+            int loopTimes = 2;
+            for (int i = 0; i < loopTimes; i++)
+            {
+                Run();
+                Thread.Sleep(TimeSpan.FromSeconds(3));
+            }
             Console.WriteLine("5678");
             Console.ReadKey();
         }
@@ -37,7 +43,7 @@ namespace ConsoleApp_ForAutoItTest
 
         private static void LogIn()
         {
-            string loginPassword = "gh202123X";
+            string loginPassword = "ah202123";
 
             IntPtr loginForm = AutoItX.WinGetHandle(LoginFormTitle);
             IntPtr textPass = AutoItX.ControlGetHandle(loginForm, "[CLASS:TCMBStyleEdit72]");
@@ -46,14 +52,36 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(loginForm, textPass, loginPassword);
             ClickLoginButton(loginForm, textPass);
 
-            int errorHappen1 = AutoItX.WinActive("", "错误"); //weird
-            int errorHappen = AutoItX.WinActive("[CLASS:TPbBaseMsgForm]");
-            if (errorHappen == 1)
+            /*int errorHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 2); //client password validate
+            if (errorHappen1 == 1)
             {
                 string errorText = AutoItX.WinGetText("[CLASS:TPbBaseMsgForm]");
-                Console.WriteLine("Login Failed, Error<{0}>", errorText.Trim());
+                Console.WriteLine("Login Failed1, Error<{0}>", errorText.Trim());
                 AutoItX.WinClose("[CLASS:TPbBaseMsgForm]");
+                return;
+            }*/
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            int errorHappen2 = AutoItX.WinWaitActive("[CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
+            if (errorHappen2 == 1)
+            {
+                Console.WriteLine("Login Failed2, Error<{0}>", "Authentication Key Missing");
+                AutoItX.WinClose("[CLASS:TErrorWithHelpForm]");
+                sw.Stop();
+                Console.WriteLine("spend timeA: " + sw.ElapsedMilliseconds);
+                return;
             }
+            int errorHappen3 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //server password validate
+            if (errorHappen3 == 1)
+            {
+                string errorText = AutoItX.WinGetText("[CLASS:TPbBaseMsgForm]");
+                Console.WriteLine("Login Failed3, Error<{0}>", errorText.Trim());
+                AutoItX.WinClose("[CLASS:TPbBaseMsgForm]");
+                sw.Stop();
+                Console.WriteLine("spend timeB: " + sw.ElapsedMilliseconds);
+                return;
+            }
+
         }
 
 
