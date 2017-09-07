@@ -8,10 +8,9 @@ namespace ConsoleApp_ForAutoItTest
 {
     public class RobotCMB
     {
-        private const int WIN_STATE_MINIMIZED = 5;
         private const string LoginFormTitle = "招商银行个人银行专业版";
-        private static IntPtr _mainForm;
-        private static Rectangle _mainFormPosition;
+        private IntPtr _mainForm;
+        private Rectangle _mainFormPosition;
 
         private delegate RobotResult FundOutStep(RobotContext context);
 
@@ -19,7 +18,7 @@ namespace ConsoleApp_ForAutoItTest
         {
             return new FundOutStep[]
             {
-                OpenDesktopApplication,
+                DoOpenClientApp,
                 DoLogIn,
                 DoTransfer,
                 DoLogOut
@@ -58,19 +57,20 @@ namespace ConsoleApp_ForAutoItTest
 
         }
 
-        private RobotResult OpenDesktopApplication(RobotContext context)
+        private RobotResult DoOpenClientApp(RobotContext context)
         {
             try
             {
-                if (AutoItX.WinExists(LoginFormTitle) == 1)
+                int processExists = AutoItX.ProcessExists("PersonalBankPortal.exe");
+                if (processExists != 0)
                 {
-                    int winGetState = AutoItX.WinGetState(LoginFormTitle);
-                    if (winGetState == WIN_STATE_MINIMIZED)
+                    int processClose = AutoItX.ProcessClose("PersonalBankPortal.exe");
+                    if (processClose == 1)
                     {
-                        AutoItX.WinSetState(LoginFormTitle, "", AutoItX.SW_RESTORE);
+                        Console.WriteLine("Kill old process done");
                     }
                 }
-                else
+                if (AutoItX.WinExists(LoginFormTitle) != 1)
                 {
                     AutoItX.Run("D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"", "");
                     AutoItX.WinWait(LoginFormTitle, "", 5);
@@ -115,18 +115,26 @@ namespace ConsoleApp_ForAutoItTest
                     Console.WriteLine("spend timeB: " + sw.ElapsedMilliseconds);
                     return RobotResult.Build(context, RobotStatus.ERROR, $"Login Failed2, Error<{errorText.Trim()}>");
                 }
-                int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版;CLASS:TMainFrm]", "功能", 20); //main portal window
+                int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版;CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == 1)
                 {
                     _mainForm = AutoItX.WinGetHandle("[TITLE:招商银行个人银行专业版;CLASS:TMainFrm]", "功能");
                     _mainFormPosition = AutoItX.WinGetPos(_mainForm);
                     sw.Stop();
                     Console.WriteLine("spend timeC: " + sw.ElapsedMilliseconds);
-                    return RobotResult.Build(context, RobotStatus.ERROR, "Login Success, Awesome!");
+                    return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
+                }
+                int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS:TErrorWithHelpForm]", "", 5); //main portal window
+                if (errorHappen4 == 1)
+                {
+                    AutoItX.WinClose("[TITLE:错误;CLASS:TErrorWithHelpForm]");
+                    sw.Stop();
+                    Console.WriteLine("spend timeC: " + sw.ElapsedMilliseconds);
+                    return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed3, Error<Handshake Fault>");
                 }
                 sw.Stop();
                 Console.WriteLine("spend timeZ: " + sw.ElapsedMilliseconds);
-                return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed3, Unknown Error<Main Portal Window Not Active>");
+                return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed4, Unknown Error<Main Portal Window Not Active>");
             }
             catch (Exception e)
             {
@@ -138,8 +146,9 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-
+                Console.WriteLine("Do Transfer Out1");
+                Thread.Sleep(TimeSpan.FromSeconds(15));
+                Console.WriteLine("Do Transfer Out2");
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
@@ -155,6 +164,10 @@ namespace ConsoleApp_ForAutoItTest
                 int btnLogOutPossitionX = _mainFormPosition.X + _mainFormPosition.Width - 140;
                 int btnLogOutPossitionY = _mainFormPosition.Y + 17;
                 Console.WriteLine("Click Log Out");
+                AutoItX.MouseMove(_mainFormPosition.X, _mainFormPosition.Y);
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+                AutoItX.MouseMove(btnLogOutPossitionX, btnLogOutPossitionY);
+                Thread.Sleep(TimeSpan.FromSeconds(2));
                 AutoItX.MouseClick("LEFT", btnLogOutPossitionX, btnLogOutPossitionY);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TAppExitForm]", "", 5);
@@ -162,9 +175,13 @@ namespace ConsoleApp_ForAutoItTest
                 {
                     IntPtr warningPopWin1 = AutoItX.WinGetHandle("[CLASS:TAppExitForm]");
                     Rectangle warningPopWinPossition1 = AutoItX.WinGetPos(warningPopWin1);
-                    int btnYesPossitionX1 = warningPopWinPossition1.X + 112;
-                    int btnYesPossitionY1 = warningPopWinPossition1.Y + 194;
+                    int btnYesPossitionX1 = warningPopWinPossition1.X + 110;
+                    int btnYesPossitionY1 = warningPopWinPossition1.Y + 190;
                     Console.WriteLine("Click Yes1 Button");
+                    AutoItX.MouseMove(warningPopWinPossition1.X, warningPopWinPossition1.Y);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                    AutoItX.MouseMove(btnYesPossitionX1, btnYesPossitionY1);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
                     AutoItX.MouseClick("LEFT", btnYesPossitionX1, btnYesPossitionY1);
                 }
                 int warningHappen2 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "移动证书优KEY还插在电脑", 5);
@@ -172,23 +189,30 @@ namespace ConsoleApp_ForAutoItTest
                 {
                     IntPtr warningPopWin2 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "移动证书优KEY还插在电脑");
                     Rectangle warningPopWinPossition2 = AutoItX.WinGetPos(warningPopWin2);
-                    int btnYesPossitionX2 = warningPopWinPossition2.X + 253;
-                    int btnYesPossitionY2 = warningPopWinPossition2.Y + 219;
+                    int btnYesPossitionX2 = warningPopWinPossition2.X + 250;
+                    int btnYesPossitionY2 = warningPopWinPossition2.Y + 170;
                     Console.WriteLine("Click Yes2 Button");
+                    AutoItX.MouseMove(warningPopWinPossition2.X, warningPopWinPossition2.Y);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
                     AutoItX.MouseMove(btnYesPossitionX2, btnYesPossitionY2);
-                    //AutoItX.MouseClick("LEFT", btnYesPossitionX2, btnYesPossitionY2);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                    AutoItX.MouseClick("LEFT", btnYesPossitionX2, btnYesPossitionY2);
                 }
                 int warningHappen3 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "再次确认是否要不拔掉优KEY退出专业版", 5);
                 if (warningHappen3 == 1)
                 {
                     IntPtr warningPopWin3 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "再次确认是否要不拔掉优KEY退出专业版");
                     Rectangle warningPopWinPossition3 = AutoItX.WinGetPos(warningPopWin3);
-                    int btnYesPossitionX3 = warningPopWinPossition3.X + 253;
-                    int btnYesPossitionY3 = warningPopWinPossition3.Y + 193;
+                    int btnYesPossitionX3 = warningPopWinPossition3.X + 250;
+                    int btnYesPossitionY3 = warningPopWinPossition3.Y + 160;
                     Console.WriteLine("Click Yes3 Button");
+                    AutoItX.MouseMove(warningPopWinPossition3.X, warningPopWinPossition3.Y);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                    AutoItX.MouseMove(btnYesPossitionX3, btnYesPossitionY3);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
                     AutoItX.MouseClick("LEFT", btnYesPossitionX3, btnYesPossitionY3);
                 }
-                Thread.Sleep(TimeSpan.FromSeconds(2));
+                Thread.Sleep(TimeSpan.FromSeconds(3));
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
@@ -204,6 +228,10 @@ namespace ConsoleApp_ForAutoItTest
             int btnLogInPossitionX = loginFormPosition.X + textPassPosition.X + 50;
             int btnLogInPossitionY = loginFormPosition.Y + textPassPosition.Y + 60;
             Console.WriteLine("Click Log In");
+            AutoItX.MouseMove(loginFormPosition.X + textPassPosition.X, loginFormPosition.Y + textPassPosition.Y);
+            Thread.Sleep(TimeSpan.FromSeconds(2));
+            AutoItX.MouseMove(btnLogInPossitionX, btnLogInPossitionY);
+            Thread.Sleep(TimeSpan.FromSeconds(2));
             AutoItX.MouseClick("LEFT", btnLogInPossitionX, btnLogInPossitionY);
         }
 
