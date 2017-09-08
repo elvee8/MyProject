@@ -1,6 +1,5 @@
 ﻿using AutoIt;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 
@@ -94,7 +93,7 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
                 IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
                 EnterPinBox(loginFormWindow, textPassBox, loginPassword);
-                ClickLoginButton(loginFormWindow, textPassBox);
+                ClickButton(loginFormWindow, 200, 400);
 
                 int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
                 if (errorHappen1 == AutoItXSuccess)
@@ -136,17 +135,16 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
 
-                Rectangle mainFormPosition = GetMainFormPosition();
-                ClickButton(mainFormPosition.X, mainFormPosition.Y, 50, 80); // click HomePage button
+                ClickButton(mainFormWindow, 50, 80); // click HomePage button
+                ClickButton(mainFormWindow, 60, 330); // click Transfer button, default 'Same-bank transfer'
 
-                ClickButton(mainFormPosition.X, mainFormPosition.Y, 60, 330); // click Transfer button, default 'Same-bank transfer'
                 if (string.IsNullOrEmpty(context.ToBankName))
                 {
                     IntPtr sameBankTransferPanel = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TPageControl]");
                 }
                 else
                 {
-                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 210, 210); // click 'Inter-bank transfer' button
+                    ClickButton(mainFormWindow, 210, 210); // click 'Inter-bank transfer' button
 
                     IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
                     EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
@@ -157,15 +155,13 @@ namespace ConsoleApp_ForAutoItTest
                     IntPtr listViewToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
                     //EnterTextBox(mainFormWindow, textToBankName, context.ToBankName);
 
-
                     IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
                     EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
                     IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:2]");
-                    //EnterTextBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
                     EnterPinBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
 
-                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 450, 650); // click 'Next' button
+                    ClickButton(mainFormWindow, 350, 660); // click 'Next' button
                 }
 
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
@@ -180,31 +176,30 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                Rectangle mainFormPosition = GetMainFormPosition();
-                ClickButton(mainFormPosition.X, mainFormPosition.Y, mainFormPosition.Width - 140, 17);
+                IntPtr mainFormWindow = GetMainFormWindow();
+                AutoItX.WinActivate(mainFormWindow);
+                Rectangle mainWindowPosition = AutoItX.WinGetPos(mainFormWindow);
+                ClickButton(mainFormWindow, mainWindowPosition.Width - 140, 17);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TAppExitForm]", "", 5);
                 if (warningHappen1 == AutoItXSuccess)
                 {
                     IntPtr warningPopWin1 = AutoItX.WinGetHandle("[CLASS:TAppExitForm]");
-                    Rectangle warningPopWinPossition1 = AutoItX.WinGetPos(warningPopWin1);
-                    ClickButton(warningPopWinPossition1.X, warningPopWinPossition1.Y, 110, 190);
+                    ClickButton(warningPopWin1, 110, 190);
                 }
                 int warningHappen2 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "移动证书优KEY还插在电脑", 5);
                 if (warningHappen2 == AutoItXSuccess)
                 {
                     IntPtr warningPopWin2 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "移动证书优KEY还插在电脑");
-                    Rectangle warningPopWinPossition2 = AutoItX.WinGetPos(warningPopWin2);
-                    ClickButton(warningPopWinPossition2.X, warningPopWinPossition2.Y, 250, 170);
+                    ClickButton(warningPopWin2, 250, 170);
                 }
                 int warningHappen3 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "再次确认是否要不拔掉优KEY退出专业版", 5);
                 if (warningHappen3 == AutoItXSuccess)
                 {
                     IntPtr warningPopWin3 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "再次确认是否要不拔掉优KEY退出专业版");
-                    Rectangle warningPopWinPossition3 = AutoItX.WinGetPos(warningPopWin3);
-                    ClickButton(warningPopWinPossition3.X, warningPopWinPossition3.Y, 260, 160);
+                    ClickButton(warningPopWin3, 260, 160);
                 }
-                Thread.Sleep(TimeSpan.FromSeconds(3));
+                Thread.Sleep(TimeSpan.FromSeconds(2));
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
@@ -220,44 +215,12 @@ namespace ConsoleApp_ForAutoItTest
             return AutoItX.WinGetHandle("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能");
         }
 
-        private Rectangle GetMainFormPosition()
-        {
-            IntPtr mainForm = GetMainFormWindow();
-            return AutoItX.WinGetPos(mainForm);
-        }
-
-        private void ClickLoginButton(IntPtr loginForm, IntPtr textPass)
-        {
-            Rectangle loginFormPosition = AutoItX.WinGetPos(loginForm);
-            Rectangle textPassPosition = AutoItX.ControlGetPos(loginForm, textPass);
-            int startX = loginFormPosition.X + textPassPosition.X;
-            int startY = loginFormPosition.Y + textPassPosition.Y;
-            ClickButton(startX, startY, 100, 70);
-        }
-
-        private void ClickButton(int startX, int startY, int offsetX, int offsetY)
-        {
-            AutoItX.MouseMove(startX, startY);
-            Thread.Sleep(TimeSpan.FromSeconds(1));
-            int btnPossitionX = startX + offsetX;
-            int btnPossitionY = startY + offsetY;
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseClick("LEFT", btnPossitionX, btnPossitionY);
-            Thread.Sleep(GetRandomDelay(1000));
-        }
-
         private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-
-                Rectangle loginFormPosition = AutoItX.WinGetPos(mainWindow);
-                Rectangle textPassPosition = AutoItX.ControlGetPos(mainWindow, textBox);
-                int startX = loginFormPosition.X + textPassPosition.X;
-                int startY = loginFormPosition.Y + textPassPosition.Y;
-                ClickButton(startX, startY, 100, 15);
-
+                ClickToFocus(mainWindow, textBox);
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
                 AutoItX.Send(value);
                 Thread.Sleep(GetRandomDelay(1000));
             }
@@ -265,8 +228,38 @@ namespace ConsoleApp_ForAutoItTest
 
         private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
+            ClickToFocus(mainWindow, textBox);
             AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
             AutoItX.ControlSetText(mainWindow, textBox, value);
+            Thread.Sleep(GetRandomDelay(1000));
+        }
+
+        private void ClickToFocus(IntPtr mainWindow, IntPtr refElement)
+        {
+            Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
+            Rectangle refElementPosition = AutoItX.ControlGetPos(mainWindow, refElement);
+            int startX = mainWindowPosition.X + refElementPosition.X;
+            int startY = mainWindowPosition.Y + refElementPosition.Y;
+            ClickElement(startX, startY, 10, 10);
+        }
+
+        private void ClickButton(IntPtr mainWindow, int offsetX, int offsetY)
+        {
+            Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
+            ClickElement(mainWindowPosition.X, mainWindowPosition.Y, offsetX, offsetY);
+        }
+
+        private void ClickElement(int startX, int startY, int offsetX, int offsetY)
+        {
+            AutoItX.MouseMove(startX, startY);
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+            int elementPossitionX = startX + offsetX;
+            int elementPossitionY = startY + offsetY;
+            AutoItX.MouseMove(elementPossitionX, elementPossitionY);
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
             Thread.Sleep(GetRandomDelay(1000));
         }
 
