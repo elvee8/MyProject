@@ -9,9 +9,7 @@ namespace ConsoleApp_ForAutoItTest
     {
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "招商银行个人银行专业版";
-        //private IntPtr _mainForm;
-        //private Rectangle _mainFormPosition;
-
+        
         private delegate RobotResult FundOutStep(RobotContext context);
 
         private FundOutStep[] AllSteps()
@@ -111,7 +109,7 @@ namespace ConsoleApp_ForAutoItTest
                 int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == AutoItXSuccess)
                 {
-                    Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+                    //Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                     return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
                 }
                 int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
@@ -135,7 +133,7 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
 
-                ClickButton(mainFormWindow, 50, 80); // click HomePage button
+                //ClickButton(mainFormWindow, 50, 80); // click HomePage button
                 ClickButton(mainFormWindow, 60, 330); // click Transfer button, default 'Same-bank transfer'
 
                 if (string.IsNullOrEmpty(context.ToBankName))
@@ -152,8 +150,41 @@ namespace ConsoleApp_ForAutoItTest
                     IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
                     EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
-                    IntPtr listViewToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
-                    //EnterTextBox(mainFormWindow, textToBankName, context.ToBankName);
+                    IntPtr listViewToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
+
+                    Rectangle mainWindowPosition = AutoItX.WinGetPos(mainFormWindow);
+                    Rectangle refElementPosition = AutoItX.ControlGetPos(mainFormWindow, listViewToBankName);
+                    int startX = mainWindowPosition.X + refElementPosition.X;
+                    int startY = mainWindowPosition.Y + refElementPosition.Y;
+                    int elementPossitionX = startX + 10;
+                    int elementPossitionY = startY + 10;
+                    AutoItX.MouseMove(elementPossitionX, elementPossitionY);
+                    Thread.Sleep(TimeSpan.FromSeconds(1));
+
+                    //AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
+                    AutoItX.MouseClickDrag("LEFT", elementPossitionX, elementPossitionY, elementPossitionX + 100,elementPossitionY + 30, 100);
+                    
+                    AutoItX.MouseDown();
+                    AutoItX.MouseUp();
+
+                    AutoItX.Send("xmgjyh"); //厦门国际银行
+                    //AutoItX.Send("{CTRLDOWN v}");
+                    
+                    AutoItX.MouseMove(elementPossitionX + 100, elementPossitionY + 70);
+                    AutoItX.MouseDown();
+                    AutoItX.MouseUp();
+                    
+
+                    AutoItX.MouseDown();
+
+                    Thread.Sleep(GetRandomDelay(1000));
+                    Thread.Sleep(TimeSpan.FromSeconds(10));
+
+
+
+                    //EnterTextBox(mainFormWindow, listViewToBankName, context.ToBankName);
+                    //EnterPinBox(mainFormWindow, listViewToBankName, context.ToBankName);
+                    //string IndexOfItem = AutoItX.ControlListView(mainFormWindow, listViewToBankName, "FindItem", context.ToBankName, "0");
 
                     IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
                     EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
@@ -251,12 +282,12 @@ namespace ConsoleApp_ForAutoItTest
 
         private void ClickElement(int startX, int startY, int offsetX, int offsetY)
         {
-            AutoItX.MouseMove(startX, startY);
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            //AutoItX.MouseMove(startX, startY);
+            //Thread.Sleep(TimeSpan.FromSeconds(1));
             int elementPossitionX = startX + offsetX;
             int elementPossitionY = startY + offsetY;
-            AutoItX.MouseMove(elementPossitionX, elementPossitionY);
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            //AutoItX.MouseMove(elementPossitionX, elementPossitionY);
+            //Thread.Sleep(TimeSpan.FromSeconds(1));
 
             AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
             AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
