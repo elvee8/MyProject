@@ -154,16 +154,18 @@ namespace ConsoleApp_ForAutoItTest
                     IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
                     EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
-                    IntPtr textToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
-                    EnterTextBox(mainFormWindow, textToBankName, context.ToBankName);
+                    IntPtr listViewToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
+                    //EnterTextBox(mainFormWindow, textToBankName, context.ToBankName);
+
 
                     IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
                     EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
                     IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:2]");
-                    EnterTextBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
+                    //EnterTextBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
+                    EnterPinBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
 
-                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 420, 620); // click 'Next' button
+                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 450, 650); // click 'Next' button
                 }
 
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
@@ -249,6 +251,13 @@ namespace ConsoleApp_ForAutoItTest
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
                 Thread.Sleep(TimeSpan.FromSeconds(1));
+
+                Rectangle loginFormPosition = AutoItX.WinGetPos(mainWindow);
+                Rectangle textPassPosition = AutoItX.ControlGetPos(mainWindow, textBox);
+                int startX = loginFormPosition.X + textPassPosition.X;
+                int startY = loginFormPosition.Y + textPassPosition.Y;
+                ClickButton(startX, startY, 100, 15);
+
                 AutoItX.Send(value);
                 Thread.Sleep(GetRandomDelay(1000));
             }
