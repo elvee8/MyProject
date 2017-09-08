@@ -91,12 +91,10 @@ namespace ConsoleApp_ForAutoItTest
             string loginPassword = context.LoginPassword;
             try
             {
-                IntPtr loginForm = AutoItX.WinGetHandle(LoginFormTitle);
-                IntPtr textPass = AutoItX.ControlGetHandle(loginForm, "[CLASS:TCMBStyleEdit72]");
-
-                EnterTextBox(loginForm, textPass, loginPassword);
-
-                ClickLoginButton(loginForm, textPass);
+                IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
+                IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
+                EnterPinBox(loginFormWindow, textPassBox, loginPassword);
+                ClickLoginButton(loginFormWindow, textPassBox);
 
                 int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
                 if (errorHappen1 == AutoItXSuccess)
@@ -114,7 +112,7 @@ namespace ConsoleApp_ForAutoItTest
                 int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == AutoItXSuccess)
                 {
-                    Thread.Sleep(TimeSpan.FromSeconds(3)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+                    Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                     return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
                 }
                 int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
@@ -141,7 +139,7 @@ namespace ConsoleApp_ForAutoItTest
                 Rectangle mainFormPosition = GetMainFormPosition();
                 ClickButton(mainFormPosition.X, mainFormPosition.Y, 50, 80); // click HomePage button
 
-                ClickButton(mainFormPosition.X, mainFormPosition.Y, 350, 470); // click Transfer button, default 'Same-bank transfer'
+                ClickButton(mainFormPosition.X, mainFormPosition.Y, 60, 330); // click Transfer button, default 'Same-bank transfer'
                 if (string.IsNullOrEmpty(context.ToBankName))
                 {
                     IntPtr sameBankTransferPanel = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TPageControl]");
@@ -150,24 +148,24 @@ namespace ConsoleApp_ForAutoItTest
                 {
                     ClickButton(mainFormPosition.X, mainFormPosition.Y, 210, 210); // click 'Inter-bank transfer' button
 
-                    AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
                     IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
-                    AutoItX.ControlSetText(mainFormWindow, textToAccountName, context.ToAccountName);
-                    Thread.Sleep(GetRandomDelay(1000));
-
-                    //IntPtr interBankTransferPanel = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TPageControl]");
-                    //IntPtr textToAccountName = AutoItX.ControlGetHandle(interBankTransferPanel, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
-                    //EnterTextBox(interBankTransferPanel, textToAccountName, context.ToAccountName);
+                    EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
 
                     IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
                     EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
+
+                    IntPtr textToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
+                    EnterTextBox(mainFormWindow, textToBankName, context.ToBankName);
+
                     IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
                     EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
-                    //IntPtr textPostscript = AutoItX.ControlGetHandle(interBankTransferPanel, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
-                    //EnterTextBox(interBankTransferPanel, textPostscript, context.WithdrawTransactionId);
-                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 300, 650); // click 'Next' button
+
+                    IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:2]");
+                    EnterTextBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
+
+                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 420, 620); // click 'Next' button
                 }
-                
+
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
@@ -241,33 +239,26 @@ namespace ConsoleApp_ForAutoItTest
             Thread.Sleep(TimeSpan.FromSeconds(1));
             int btnPossitionX = startX + offsetX;
             int btnPossitionY = startY + offsetY;
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
             AutoItX.MouseClick("LEFT", btnPossitionX, btnPossitionY);
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            Thread.Sleep(GetRandomDelay(1000));
         }
 
-
-        private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
+        private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
-            //ClearTextBox(mainWindow, textBox);
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
                 Thread.Sleep(TimeSpan.FromSeconds(1));
                 AutoItX.Send(value);
-                //AutoItX.ControlSetText(mainWindow, textBox, value);
+                Thread.Sleep(GetRandomDelay(1000));
             }
         }
 
-        private void ClearTextBox(IntPtr mainWindow, IntPtr textBox)
+        private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
-            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
-            {
-                string textBoxContent = AutoItX.ControlGetText(mainWindow, textBox);
-                while (!string.IsNullOrEmpty(textBoxContent))
-                {
-                    AutoItX.Send("{BACKSPACE}");
-                    textBoxContent = AutoItX.ControlGetText(mainWindow, textBox);
-                }
-            }
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.ControlSetText(mainWindow, textBox, value);
+            Thread.Sleep(GetRandomDelay(1000));
         }
 
         private int GetRandomDelay(int multiplier)
