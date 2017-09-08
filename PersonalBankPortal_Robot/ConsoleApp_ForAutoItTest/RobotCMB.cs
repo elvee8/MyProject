@@ -10,8 +10,8 @@ namespace ConsoleApp_ForAutoItTest
     {
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "招商银行个人银行专业版";
-        private IntPtr _mainForm;
-        private Rectangle _mainFormPosition;
+        //private IntPtr _mainForm;
+        //private Rectangle _mainFormPosition;
 
         private delegate RobotResult FundOutStep(RobotContext context);
 
@@ -58,6 +58,7 @@ namespace ConsoleApp_ForAutoItTest
 
         }
 
+        #region Step Methods
         private RobotResult DoOpenClientApp(RobotContext context)
         {
             try
@@ -93,18 +94,14 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr loginForm = AutoItX.WinGetHandle(LoginFormTitle);
                 IntPtr textPass = AutoItX.ControlGetHandle(loginForm, "[CLASS:TCMBStyleEdit72]");
 
-                ClearTextBox(loginForm, textPass);
                 EnterTextBox(loginForm, textPass, loginPassword);
+
                 ClickLoginButton(loginForm, textPass);
 
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误;CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
+                int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
                 if (errorHappen1 == AutoItXSuccess)
                 {
                     AutoItX.WinClose("[TITLE:错误;CLASS:TErrorWithHelpForm]");
-                    sw.Stop();
-                    Console.WriteLine("spend timeA: " + sw.ElapsedMilliseconds);
                     return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed1, Error<Authentication Key Missing>");
                 }
                 int errorHappen2 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //login password validate
@@ -112,29 +109,20 @@ namespace ConsoleApp_ForAutoItTest
                 {
                     string errorText = AutoItX.WinGetText("[CLASS:TPbBaseMsgForm]");
                     AutoItX.WinClose("[CLASS:TPbBaseMsgForm]");
-                    sw.Stop();
-                    Console.WriteLine("spend timeB: " + sw.ElapsedMilliseconds);
                     return RobotResult.Build(context, RobotStatus.ERROR, $"Login Failed2, Error<{errorText.Trim()}>");
                 }
-                int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版;CLASS:TMainFrm]", "功能", 60); //main portal window
+                int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == AutoItXSuccess)
                 {
-                    _mainForm = AutoItX.WinGetHandle("[TITLE:招商银行个人银行专业版;CLASS:TMainFrm]", "功能");
-                    _mainFormPosition = AutoItX.WinGetPos(_mainForm);
-                    sw.Stop();
-                    Console.WriteLine("spend timeC: " + sw.ElapsedMilliseconds);
+                    Thread.Sleep(TimeSpan.FromSeconds(3)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                     return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
                 }
-                int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS:TErrorWithHelpForm]", "", 5); //main portal window
+                int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
                 if (errorHappen4 == AutoItXSuccess)
                 {
-                    AutoItX.WinClose("[TITLE:错误;CLASS:TErrorWithHelpForm]");
-                    sw.Stop();
-                    Console.WriteLine("spend timeC: " + sw.ElapsedMilliseconds);
+                    AutoItX.WinClose("[TITLE:错误; CLASS:TErrorWithHelpForm]");
                     return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed3, Error<Handshake Fault>");
                 }
-                sw.Stop();
-                Console.WriteLine("spend timeZ: " + sw.ElapsedMilliseconds);
                 return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed4, Unknown Error<Main Portal Window Not Active>");
             }
             catch (Exception e)
@@ -147,11 +135,39 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                for (int i = 0; i < 7; i++)
+                IntPtr mainFormWindow = GetMainFormWindow();
+                AutoItX.WinActivate(mainFormWindow);
+
+                Rectangle mainFormPosition = GetMainFormPosition();
+                ClickButton(mainFormPosition.X, mainFormPosition.Y, 50, 80); // click HomePage button
+
+                ClickButton(mainFormPosition.X, mainFormPosition.Y, 350, 470); // click Transfer button, default 'Same-bank transfer'
+                if (string.IsNullOrEmpty(context.ToBankName))
                 {
-                    Console.WriteLine("Do Transfer Out" + i);
-                    Thread.Sleep(TimeSpan.FromSeconds(1));
+                    IntPtr sameBankTransferPanel = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TPageControl]");
                 }
+                else
+                {
+                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 210, 210); // click 'Inter-bank transfer' button
+
+                    AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                    IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
+                    AutoItX.ControlSetText(mainFormWindow, textToAccountName, context.ToAccountName);
+                    Thread.Sleep(GetRandomDelay(1000));
+
+                    //IntPtr interBankTransferPanel = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TPageControl]");
+                    //IntPtr textToAccountName = AutoItX.ControlGetHandle(interBankTransferPanel, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
+                    //EnterTextBox(interBankTransferPanel, textToAccountName, context.ToAccountName);
+
+                    IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
+                    EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
+                    IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
+                    EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
+                    //IntPtr textPostscript = AutoItX.ControlGetHandle(interBankTransferPanel, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
+                    //EnterTextBox(interBankTransferPanel, textPostscript, context.WithdrawTransactionId);
+                    ClickButton(mainFormPosition.X, mainFormPosition.Y, 300, 650); // click 'Next' button
+                }
+                
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
@@ -164,7 +180,8 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                ClickButton(_mainFormPosition.X, _mainFormPosition.Y, _mainFormPosition.Width - 140, 17);
+                Rectangle mainFormPosition = GetMainFormPosition();
+                ClickButton(mainFormPosition.X, mainFormPosition.Y, mainFormPosition.Width - 140, 17);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TAppExitForm]", "", 5);
                 if (warningHappen1 == AutoItXSuccess)
@@ -195,6 +212,19 @@ namespace ConsoleApp_ForAutoItTest
                 return RobotResult.Build(context, RobotStatus.ERROR, e.Message);
             }
         }
+        #endregion
+
+        #region Helper Methods
+        private IntPtr GetMainFormWindow()
+        {
+            return AutoItX.WinGetHandle("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能");
+        }
+
+        private Rectangle GetMainFormPosition()
+        {
+            IntPtr mainForm = GetMainFormWindow();
+            return AutoItX.WinGetPos(mainForm);
+        }
 
         private void ClickLoginButton(IntPtr loginForm, IntPtr textPass)
         {
@@ -202,7 +232,7 @@ namespace ConsoleApp_ForAutoItTest
             Rectangle textPassPosition = AutoItX.ControlGetPos(loginForm, textPass);
             int startX = loginFormPosition.X + textPassPosition.X;
             int startY = loginFormPosition.Y + textPassPosition.Y;
-            ClickButton(startX, startY, 50, 60);
+            ClickButton(startX, startY, 100, 70);
         }
 
         private void ClickButton(int startX, int startY, int offsetX, int offsetY)
@@ -211,18 +241,19 @@ namespace ConsoleApp_ForAutoItTest
             Thread.Sleep(TimeSpan.FromSeconds(1));
             int btnPossitionX = startX + offsetX;
             int btnPossitionY = startY + offsetY;
-            AutoItX.MouseMove(btnPossitionX, btnPossitionY);
+            AutoItX.MouseClick("LEFT", btnPossitionX, btnPossitionY);
             Thread.Sleep(TimeSpan.FromSeconds(1));
-            AutoItX.MouseDown();
-            AutoItX.MouseUp();
         }
 
 
         private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
+            //ClearTextBox(mainWindow, textBox);
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
+                Thread.Sleep(TimeSpan.FromSeconds(1));
                 AutoItX.Send(value);
+                //AutoItX.ControlSetText(mainWindow, textBox, value);
             }
         }
 
@@ -239,5 +270,14 @@ namespace ConsoleApp_ForAutoItTest
             }
         }
 
+        private int GetRandomDelay(int multiplier)
+        {
+            var rnd = new Random();
+            var value = rnd.Next(1, 3);
+            return value * multiplier;
+        }
+        #endregion
+
     }
+
 }
