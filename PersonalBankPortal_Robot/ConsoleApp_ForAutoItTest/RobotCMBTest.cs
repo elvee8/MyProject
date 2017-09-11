@@ -16,7 +16,7 @@ namespace ConsoleApp_ForAutoItTest
         {
             Console.WriteLine("---------------------------1234---------------------------");
             string[] bankNames = new[] { "中国建设银行", "襄阳银行", "厦门国际银行" };
-            int loopTimes = 3;
+            int loopTimes = 1;
             for (int i = 0; i < loopTimes; i++)
             {
                 RobotContext context = new RobotContext();
