@@ -167,9 +167,9 @@ namespace ConsoleApp_ForAutoItTest
                     AutoItX.MouseDown();
                     AutoItX.MouseUp();
 
-                    AutoItX.Send("xmgjyh"); //厦门国际银行
-                    //AutoItX.Send("{CTRLDOWN v}");
-                    
+                    //AutoItX.Send("xmgjyh"); //厦门国际银行
+                    AutoItX.Send("^v");
+
                     AutoItX.MouseMove(elementPossitionX + 100, elementPossitionY + 70);
                     AutoItX.MouseDown();
                     AutoItX.MouseUp();
@@ -305,3 +305,4 @@ namespace ConsoleApp_ForAutoItTest
     }
 
 }
+

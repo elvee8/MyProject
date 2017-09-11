@@ -20,7 +20,7 @@ namespace ConsoleApp_ForAutoItTest
             {
                 RobotContext context = new RobotContext();
                 context.LoginPassword = "gh202123";
-                context.ToBankName = "中国建设银行";
+                context.ToBankName = "厦门国际银行";
                 context.ToAccountName = "吕文斌";
                 context.ToAccountNumber = "6214837694277025";
                 context.WithdrawAmount = "1001.01";
