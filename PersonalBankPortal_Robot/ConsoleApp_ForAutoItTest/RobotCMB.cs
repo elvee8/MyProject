@@ -138,11 +138,13 @@ namespace ConsoleApp_ForAutoItTest
 
                 if (string.IsNullOrEmpty(context.ToBankName))
                 {
-                    RunSameBankTransfer(mainFormWindow, context);
+                    FillSameBankTransInfo(mainFormWindow, context);
+                    FillOtp(mainFormWindow, context);
                 }
                 else
                 {
-                    RunInterBankTransfer(mainFormWindow, context);
+                    FillInterBankTransInfo(mainFormWindow, context);
+                    FillOtp(mainFormWindow, context);
                 }
 
                 int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //transfer pre-check failed
@@ -160,12 +162,35 @@ namespace ConsoleApp_ForAutoItTest
             }
         }
 
-        private void RunSameBankTransfer(IntPtr mainFormWindow, RobotContext context)
+        private void FillSameBankTransInfo(IntPtr mainFormWindow, RobotContext context)
         {
-            IntPtr sameBankTransferPanel = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TPageControl]");
+            ClickButton(mainFormWindow, 100, 210); // click 'Same-bank transfer' button
+
+            IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
+            EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
+
+            IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:3]");
+            EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
+
+            IntPtr searchComboBoxToAccountCity = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
+            //SearchAndSelectBankName(mainFormWindow, searchComboBoxToAccountCity, context.ToBankName);
+
+            IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
+            EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
+
+            IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
+            EnterPinBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
+
+            ClickButton(mainFormWindow, 350, 640); // click 'Next' button
+            int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择的收款方地址与收款方账户所属开户地不符", 10);
+            if (warningHappen1 == AutoItXSuccess)
+            {
+                IntPtr warningPopWin1 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "选择的收款方地址与收款方账户所属开户地不符");
+                ClickButton(warningPopWin1, 300, 150);
+            }
         }
 
-        private void RunInterBankTransfer(IntPtr mainFormWindow, RobotContext context)
+        private void FillInterBankTransInfo(IntPtr mainFormWindow, RobotContext context)
         {
             ClickButton(mainFormWindow, 210, 210); // click 'Inter-bank transfer' button
 
@@ -190,8 +215,11 @@ namespace ConsoleApp_ForAutoItTest
 
             ClickButton(mainFormWindow, 350, 660); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
-            
-            ClickButton(mainFormWindow, 550, 420); // click '获取短信验证码' button
+        }
+
+        private void FillOtp(IntPtr mainFormWindow, RobotContext context)
+        {
+            ClickButton(mainFormWindow, 550, 412); // click '获取短信验证码' button
             int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码", 5);
             if (warningHappen1 == AutoItXSuccess)
             {
@@ -210,9 +238,8 @@ namespace ConsoleApp_ForAutoItTest
 
             IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
             EnterPinBox(mainFormWindow, textOtpBox, context.Otp);
-            ClickButton(mainFormWindow, 420, 620); // click 'Next' button
+            ClickButton(mainFormWindow, 420, 612); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
-
         }
 
         private RobotResult DoLogOut(RobotContext context)
