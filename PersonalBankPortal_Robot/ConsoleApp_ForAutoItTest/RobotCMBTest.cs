@@ -24,7 +24,7 @@ namespace ConsoleApp_ForAutoItTest
                 context.ToBankName = bankNames[i];
                 context.ToAccountName = "吕文斌";
                 context.ToAccountNumber = "6214837694277025";
-                context.WithdrawAmount = "1001.01";
+                context.WithdrawAmount = "1.01";
                 context.WithdrawTransactionId = "123-4567-8901";
                 RobotCMB robot = new RobotCMB();
                 robot.Transfer(context);

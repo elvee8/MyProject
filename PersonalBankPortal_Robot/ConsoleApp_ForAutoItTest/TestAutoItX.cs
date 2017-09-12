@@ -20,6 +20,19 @@ namespace ConsoleApp_ForAutoItTest
             Console.ReadKey();
         }
 
+        public static void Main2(string[] args)
+        {
+            string x = "2,169,600.00";
+            string y = x.Replace(",", "").Replace(".00", "").Trim();
+
+            string a = "2.169.600";
+            string b = a.Replace(".", "").Trim();
+
+            Console.WriteLine(y);
+            Console.WriteLine(b);
+            Console.ReadKey();
+        }
+
         static void TestNotepad()
         {
             AutoItX.Run("notepad.exe", "D:/MIDAS/CMB2");

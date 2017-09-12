@@ -175,21 +175,10 @@ namespace ConsoleApp_ForAutoItTest
             IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
             EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
-            IntPtr searchComboBoxToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
-            SearchAndSelectBankName(mainFormWindow, searchComboBoxToBankName, context.ToBankName);
+            IntPtr transferTypeImmediate = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleRadioButton; INSTANCE:1]"); //immediate
+            AutoItX.ControlClick(mainFormWindow, transferTypeImmediate);
 
-            string selectedToBankName = AutoItX.ControlGetText(mainFormWindow, searchComboBoxToBankName);
-            if (string.IsNullOrWhiteSpace(selectedToBankName))
-            {
-                IntPtr transferTypeFast = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleRadioButton; INSTANCE:2]"); //fast
-                //IntPtr transferTypeNormal = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleRadioButton; INSTANCE:3]"); //normal
-                AutoItX.ControlClick(mainFormWindow, transferTypeFast);
-            }
-            else
-            {
-                IntPtr transferTypeImmediate = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleRadioButton; INSTANCE:1]"); //immediate
-                AutoItX.ControlClick(mainFormWindow, transferTypeImmediate);
-            }
+            IntPtr searchComboBoxToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
             SearchAndSelectBankName(mainFormWindow, searchComboBoxToBankName, context.ToBankName);
 
             IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
