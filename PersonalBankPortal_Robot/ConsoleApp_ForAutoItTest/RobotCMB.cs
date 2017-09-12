@@ -173,7 +173,7 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
             IntPtr searchComboBoxToAccountCity = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
-            //SearchAndSelectBankName(mainFormWindow, searchComboBoxToAccountCity, context.ToBankName);
+            SearchAndSelectComboBox(mainFormWindow, searchComboBoxToAccountCity, context.ToAccountCity);
 
             IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
@@ -205,7 +205,7 @@ namespace ConsoleApp_ForAutoItTest
             Thread.Sleep(TimeSpan.FromSeconds(1));
 
             IntPtr searchComboBoxToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
-            SearchAndSelectBankName(mainFormWindow, searchComboBoxToBankName, context.ToBankName);
+            SearchAndSelectComboBox(mainFormWindow, searchComboBoxToBankName, context.ToBankName);
 
             IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
@@ -285,7 +285,7 @@ namespace ConsoleApp_ForAutoItTest
             return AutoItX.WinGetHandle("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能");
         }
 
-        private void SearchAndSelectBankName(IntPtr mainWindow, IntPtr searchComboBox, string value)
+        private void SearchAndSelectComboBox(IntPtr mainWindow, IntPtr searchComboBox, string value)
         {
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
             Rectangle refElementPosition = AutoItX.ControlGetPos(mainWindow, searchComboBox);
@@ -308,7 +308,6 @@ namespace ConsoleApp_ForAutoItTest
 
             Thread.Sleep(TimeSpan.FromSeconds(1)); // stop to make sure the dropdown selected done
         }
-
 
         private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)
         {

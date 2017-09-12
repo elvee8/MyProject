@@ -15,7 +15,7 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("---------------------------1234---------------------------");
-            string[] bankNames = new[] { "中国建设银行", "招商银行", "厦门国际银行" };
+            string[] bankNames = new[] { "中国建设银行", "招商银行", "" };
             int loopTimes = 1;
             for (int i = 0; i < loopTimes; i++)
             {
