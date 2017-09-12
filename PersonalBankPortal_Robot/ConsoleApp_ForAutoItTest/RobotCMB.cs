@@ -109,7 +109,7 @@ namespace ConsoleApp_ForAutoItTest
                 int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == AutoItXSuccess)
                 {
-                    //Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+                    //Thread.Sleep(TimeSpan.FromSeconds(3)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                     return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
                 }
                 int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
@@ -177,6 +177,7 @@ namespace ConsoleApp_ForAutoItTest
 
             IntPtr transferTypeImmediate = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleRadioButton; INSTANCE:1]"); //immediate
             AutoItX.ControlClick(mainFormWindow, transferTypeImmediate);
+            Thread.Sleep(TimeSpan.FromSeconds(1));
 
             IntPtr searchComboBoxToBankName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
             SearchAndSelectBankName(mainFormWindow, searchComboBoxToBankName, context.ToBankName);
@@ -188,6 +189,35 @@ namespace ConsoleApp_ForAutoItTest
             EnterPinBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
 
             ClickButton(mainFormWindow, 350, 660); // click 'Next' button
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+
+
+            ClickButton(mainFormWindow, 550, 420); // click '获取短信验证码' button
+            int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码", 5);
+            if (warningHappen1 == AutoItXSuccess)
+            {
+                IntPtr warningPopWin1 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码");
+                ClickButton(warningPopWin1, 250, 170);
+            }
+            int warningHappen2 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "通过短信方式获取验证码的请求提交成功", 5);
+            if (warningHappen2 == AutoItXSuccess)
+            {
+                IntPtr warningPopWin2 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "通过短信方式获取验证码的请求提交成功");
+                ClickButton(warningPopWin2, 300, 160);
+            }
+            int warningHappen3 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "若1分钟后仍未收到请再点击重新获取验证码", 5);
+            if (warningHappen3 == AutoItXSuccess)
+            {
+                IntPtr warningPopWin3 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "若1分钟后仍未收到请再点击重新获取验证码");
+                ClickButton(warningPopWin3, 300, 170);
+                //Thread.Sleep(TimeSpan.FromMinutes(1));
+            }
+
+            IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
+            EnterPinBox(mainFormWindow, textOtpBox, "123456");
+            ClickButton(mainFormWindow, 420, 620); // click 'Next' button
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+
         }
 
         private RobotResult DoLogOut(RobotContext context)
@@ -279,6 +309,7 @@ namespace ConsoleApp_ForAutoItTest
 
         private void ClickToFocus(IntPtr mainWindow, IntPtr refElement)
         {
+            ClearTextBox(mainWindow, refElement);
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
             Rectangle refElementPosition = AutoItX.ControlGetPos(mainWindow, refElement);
             int startX = mainWindowPosition.X + refElementPosition.X;
@@ -297,6 +328,8 @@ namespace ConsoleApp_ForAutoItTest
             int elementPossitionX = startX + offsetX;
             int elementPossitionY = startY + offsetY;
             AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.MouseMove(elementPossitionX, elementPossitionY);
+            Thread.Sleep(TimeSpan.FromSeconds(1));
             AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
             Thread.Sleep(GetRandomDelay(1000));
         }
@@ -306,6 +339,19 @@ namespace ConsoleApp_ForAutoItTest
             var rnd = new Random();
             var value = rnd.Next(1, 3);
             return value * multiplier;
+        }
+
+        private void ClearTextBox(IntPtr mainWindow, IntPtr textBox)
+        {
+            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+            {
+                string textBoxContent = AutoItX.ControlGetText(mainWindow, textBox);
+                while (!string.IsNullOrEmpty(textBoxContent))
+                {
+                    AutoItX.Send("{BACKSPACE}");
+                    textBoxContent = AutoItX.ControlGetText(mainWindow, textBox);
+                }
+            }
         }
         #endregion
 
