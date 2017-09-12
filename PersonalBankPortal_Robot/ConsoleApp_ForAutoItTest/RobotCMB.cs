@@ -190,8 +190,7 @@ namespace ConsoleApp_ForAutoItTest
 
             ClickButton(mainFormWindow, 350, 660); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
-
-
+            
             ClickButton(mainFormWindow, 550, 420); // click '获取短信验证码' button
             int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码", 5);
             if (warningHappen1 == AutoItXSuccess)
@@ -205,16 +204,12 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr warningPopWin2 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "通过短信方式获取验证码的请求提交成功");
                 ClickButton(warningPopWin2, 300, 160);
             }
-            int warningHappen3 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "若1分钟后仍未收到请再点击重新获取验证码", 5);
-            if (warningHappen3 == AutoItXSuccess)
-            {
-                IntPtr warningPopWin3 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "若1分钟后仍未收到请再点击重新获取验证码");
-                ClickButton(warningPopWin3, 300, 170);
-                //Thread.Sleep(TimeSpan.FromMinutes(1));
-            }
+
+            // wait to get OTP
+            context.Otp = "123456";
 
             IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
-            EnterPinBox(mainFormWindow, textOtpBox, "123456");
+            EnterPinBox(mainFormWindow, textOtpBox, context.Otp);
             ClickButton(mainFormWindow, 420, 620); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
 
@@ -328,8 +323,6 @@ namespace ConsoleApp_ForAutoItTest
             int elementPossitionX = startX + offsetX;
             int elementPossitionY = startY + offsetY;
             AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.MouseMove(elementPossitionX, elementPossitionY);
-            Thread.Sleep(TimeSpan.FromSeconds(1));
             AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
             Thread.Sleep(GetRandomDelay(1000));
         }

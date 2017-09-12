@@ -14,6 +14,7 @@ namespace ConsoleApp_ForAutoItTest
         public string ToBankName { get; set; }
         public string WithdrawAmount { get; set; }
         public string WithdrawTransactionId { get; set; }
+        public string Otp { get; set; }
         public string TokenWithdrawPin { get; set; }
     }
 
