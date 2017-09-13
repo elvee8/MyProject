@@ -3,11 +3,13 @@ using System;
 using System.Drawing;
 using System.Threading;
 using ConsoleApp_ForAutoItTest.SendKeyMessage;
+using NLog;
 
 namespace ConsoleApp_ForAutoItTest
 {
     public class RobotCMB
     {
+        private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "招商银行个人银行专业版";
 
@@ -34,25 +36,27 @@ namespace ConsoleApp_ForAutoItTest
                 {
                     FundOutStep step = steps[i];
                     int stepNo = i + 1;
-                    Console.WriteLine("Step<{0}|{1}> Started With<{2}>", stepNo, step.Method.Name, context);
+                    LOG.Log(LogLevel.Debug, "TransactionId<{0}>, Step <{1}|{2}> Started With <{3}>", context.MidasTransactionId, stepNo, step.Method.Name, context);
+                    // UpdateStatus
                     transferResult = step.Invoke(context);
                     if (transferResult.IsSuccess())
                     {
-                        Console.WriteLine("Step<{0}|{1}> Pass By <{2}|{3}>", stepNo, step.Method.Name, transferResult.Status.Code, transferResult.Status.Description);
+                        LOG.Log(LogLevel.Debug, "TransactionId<{0}>, Step <{1}|{2}> PassBy <{3}|{4}>", context.MidasTransactionId, stepNo, step.Method.Name, transferResult.Status.Code, transferResult.Status.Description);
                     }
                     else
                     {
-                        Console.WriteLine("Step<{0}|{1}> Fail In <{2}|{3}>", stepNo, step.Method.Name, transferResult.Status.Code, transferResult.Status.Description);
+                        LOG.Log(LogLevel.Debug, "TransactionId<{0}>, Step <{1}|{2}> FailIn <{3}|{4}>", context.MidasTransactionId, stepNo, step.Method.Name, transferResult.Status.Code, transferResult.Status.Description);
                         break;
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Error: <{0}>", ex);
+                LOG.Error(e, "TransactionId<{0}>, Error<{1}>", context.MidasTransactionId, e.Message);
             }
             finally
             {
+                // UpdateStatus
                 Console.WriteLine("TransferResult is [{0}|{1}]", transferResult.Status.Code, transferResult.Status.Description);
             }
 
@@ -72,7 +76,7 @@ namespace ConsoleApp_ForAutoItTest
                     int processClose = AutoItX.ProcessClose(processName);
                     if (processClose == AutoItXSuccess)
                     {
-                        Console.WriteLine($"Kill old process<{processExists}> done");
+                        LOG.Log(LogLevel.Debug, "TransactionId<{0}>, Kill old process<{1}> done", context.MidasTransactionId, processExists);
                     }
                 }
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
@@ -86,7 +90,7 @@ namespace ConsoleApp_ForAutoItTest
                     }
                     else
                     {
-                        Console.WriteLine($"programFullPath<{programFullPath}>");
+                        LOG.Error("TransactionId<{0}>, App<{1}> not found", context.MidasTransactionId, programFullPath);
                         throw new Exception("Open App Failed, Error<App Location Not Found>");
                     }
                 }
@@ -190,7 +194,7 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
-            EnterPinBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
+            EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
 
             ClickButton(mainFormWindow, 350, 640); // click 'Next' button
             int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择的收款方地址与收款方账户所属开户地不符", 10);
@@ -222,7 +226,7 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:2]");
-            EnterPinBox(mainFormWindow, textPostscript, context.WithdrawTransactionId);
+            EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
 
             ClickButton(mainFormWindow, 350, 660); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(7));
