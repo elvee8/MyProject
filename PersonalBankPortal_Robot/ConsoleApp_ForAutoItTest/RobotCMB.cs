@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Threading;
+using ConsoleApp_ForAutoItTest.SendKeyMessage;
 
 namespace ConsoleApp_ForAutoItTest
 {
@@ -74,7 +75,7 @@ namespace ConsoleApp_ForAutoItTest
                 }
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
                 {
-                    
+
                     AutoItX.Run(programFullPath, "");
                     int errorHappen1 = AutoItX.WinWaitActive(LoginFormTitle, "", 5);
                     if (errorHappen1 == AutoItXSuccess)
@@ -120,7 +121,7 @@ namespace ConsoleApp_ForAutoItTest
                 int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == AutoItXSuccess)
                 {
-                    Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+                    //Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                     return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
                 }
                 int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
@@ -243,10 +244,10 @@ namespace ConsoleApp_ForAutoItTest
             }
 
             // wait to get OTP
-            context.Otp = "123456";
+            context.Otp = "6543210";
 
             IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
-            EnterPinBox(mainFormWindow, textOtpBox, context.Otp);
+            EnterOtpBox(mainFormWindow, textOtpBox, context.Otp);
             ClickButton(mainFormWindow, 420, 610); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
         }
@@ -316,6 +317,19 @@ namespace ConsoleApp_ForAutoItTest
             AutoItX.MouseUp();
 
             Thread.Sleep(TimeSpan.FromSeconds(1)); // stop to make sure the dropdown selected done
+        }
+
+        private void EnterOtpBox(IntPtr mainWindow, IntPtr textBox, string value)
+        {
+            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+            {
+                ClickToFocus(mainWindow, textBox);
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                SimulateKey.SetForegroundWindow(textBox);
+                SimulateKey.ClearText(textBox);
+                SimulateKey.SendText(textBox, value);
+                AutoItX.Sleep(GetRandomDelay(1000));
+            }
         }
 
         private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)

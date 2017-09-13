@@ -53,6 +53,9 @@
     <Compile Include="RobotStatus.cs" />
     <Compile Include="RobotCMB.cs" />
     <Compile Include="RobotCMBTest.cs" />
+    <Compile Include="SendKeyMessage\MessageCode.cs" />
+    <Compile Include="SendKeyMessage\SimulateKey.cs" />
+    <Compile Include="SendKeyMessage\VirtualKeyCode.cs" />
     <Compile Include="TestAutoItX.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
