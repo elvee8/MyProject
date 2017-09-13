@@ -109,7 +109,7 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
                 IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
                 EnterPinBox(loginFormWindow, textPassBox, context.LoginPassword);
-                ClickButton(loginFormWindow, 200, 400);
+                ClickButton2(loginFormWindow, 200, 400);
 
                 int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
                 if (errorHappen1 == AutoItXSuccess)
@@ -374,6 +374,29 @@ namespace ConsoleApp_ForAutoItTest
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
             AutoItX.WinActivate(mainWindow);
             ClickElement(mainWindowPosition.X, mainWindowPosition.Y, offsetX, offsetY);
+        }
+
+        private void ClickButton2(IntPtr mainWindow, int offsetX, int offsetY)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                LOG.Debug("--------a--------->" + i);
+                ClickButton(mainWindow, offsetX, offsetY);
+                for (int j = 0; j < 10; j++)
+                {
+                    if (AutoItX.WinActive("[CLASS:TErrorWithHelpForm]") != 0)
+                    {
+                        AutoItX.WinClose("[CLASS:TErrorWithHelpForm]");
+                        throw new Exception("Error Throw");
+                    }
+                    if (i == 2 && j == 7)
+                    {
+                        break;
+                    }
+                    LOG.Debug("--------b--------->" + j);
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                }
+            }
         }
 
         private void ClickElement(int startX, int startY, int offsetX, int offsetY)
