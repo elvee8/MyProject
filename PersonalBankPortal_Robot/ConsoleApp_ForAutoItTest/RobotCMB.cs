@@ -34,13 +34,15 @@ namespace ConsoleApp_ForAutoItTest
                 {
                     FundOutStep step = steps[i];
                     int stepNo = i + 1;
+                    Console.WriteLine("Step<{0}|{1}> Started With<{2}>", stepNo, step.Method.Name, context);
                     transferResult = step.Invoke(context);
                     if (transferResult.IsSuccess())
                     {
-                        Console.WriteLine("Step<{0}> Pass By <{1}|{2}>", stepNo, transferResult.Status.Code, transferResult.Status.Description);
+                        Console.WriteLine("Step<{0}|{1}> Pass By <{2}|{3}>", stepNo, step.Method.Name, transferResult.Status.Code, transferResult.Status.Description);
                     }
                     else
                     {
+                        Console.WriteLine("Step<{0}|{1}> Fail In <{2}|{3}>", stepNo, step.Method.Name, transferResult.Status.Code, transferResult.Status.Description);
                         break;
                     }
                 }
@@ -70,7 +72,7 @@ namespace ConsoleApp_ForAutoItTest
                     int processClose = AutoItX.ProcessClose(processName);
                     if (processClose == AutoItXSuccess)
                     {
-                        Console.WriteLine("Kill old process done");
+                        Console.WriteLine($"Kill old process<{processExists}> done");
                     }
                 }
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
@@ -85,7 +87,7 @@ namespace ConsoleApp_ForAutoItTest
                     else
                     {
                         Console.WriteLine($"programFullPath<{programFullPath}>");
-                        return RobotResult.Build(context, RobotStatus.ERROR, "Open App Failed, Error<App Location Not Found>");
+                        throw new Exception("Open App Failed, Error<App Location Not Found>");
                     }
                 }
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Open Client App Success!");
@@ -258,6 +260,7 @@ namespace ConsoleApp_ForAutoItTest
             {
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
+
                 Rectangle mainWindowPosition = AutoItX.WinGetPos(mainFormWindow);
                 ClickButton(mainFormWindow, mainWindowPosition.Width - 150, 10);
 
