@@ -60,10 +60,13 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                int processExists = AutoItX.ProcessExists("PersonalBankPortal.exe");
+                string processName = "PersonalBankPortal.exe";
+                string programFullPath = "D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"";
+
+                int processExists = AutoItX.ProcessExists(processName);
                 if (processExists != 0)
                 {
-                    int processClose = AutoItX.ProcessClose("PersonalBankPortal.exe");
+                    int processClose = AutoItX.ProcessClose(processName);
                     if (processClose == AutoItXSuccess)
                     {
                         Console.WriteLine("Kill old process done");
@@ -71,9 +74,18 @@ namespace ConsoleApp_ForAutoItTest
                 }
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
                 {
-                    AutoItX.Run("D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"", "");
-                    AutoItX.WinWaitActive(LoginFormTitle, "", 10);
-                    Thread.Sleep(TimeSpan.FromSeconds(3));
+                    
+                    AutoItX.Run(programFullPath, "");
+                    int errorHappen1 = AutoItX.WinWaitActive(LoginFormTitle, "", 5);
+                    if (errorHappen1 == AutoItXSuccess)
+                    {
+                        Thread.Sleep(TimeSpan.FromSeconds(3));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"programFullPath<{programFullPath}>");
+                        return RobotResult.Build(context, RobotStatus.ERROR, "Open App Failed, Error<App Location Not Found>");
+                    }
                 }
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Open Client App Success!");
             }
@@ -108,7 +120,7 @@ namespace ConsoleApp_ForAutoItTest
                 int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
                 if (errorHappen3 == AutoItXSuccess)
                 {
-                    //Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+                    Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                     return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
                 }
                 int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
@@ -132,7 +144,6 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
 
-                //ClickButton(mainFormWindow, 50, 80); // click HomePage button
                 ClickButton(mainFormWindow, 60, 320); // click Transfer button, default 'Same-bank transfer'
 
                 if (string.IsNullOrEmpty(context.ToBankName))
@@ -163,8 +174,6 @@ namespace ConsoleApp_ForAutoItTest
 
         private void FillSameBankTransInfo(IntPtr mainFormWindow, RobotContext context)
         {
-            //ClickButton(mainFormWindow, 120, 210); // click 'Same-bank transfer' button
-
             IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
             EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
 
@@ -238,7 +247,7 @@ namespace ConsoleApp_ForAutoItTest
 
             IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
             EnterPinBox(mainFormWindow, textOtpBox, context.Otp);
-            //ClickButton(mainFormWindow, 420, 610); // click 'Next' button
+            ClickButton(mainFormWindow, 420, 610); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
         }
 
@@ -249,7 +258,7 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
                 Rectangle mainWindowPosition = AutoItX.WinGetPos(mainFormWindow);
-                ClickButton(mainFormWindow, mainWindowPosition.Width - 140, 17);
+                ClickButton(mainFormWindow, mainWindowPosition.Width - 150, 10);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TAppExitForm]", "", 5);
                 if (warningHappen1 == AutoItXSuccess)
@@ -335,12 +344,14 @@ namespace ConsoleApp_ForAutoItTest
             Rectangle refElementPosition = AutoItX.ControlGetPos(mainWindow, refElement);
             int startX = mainWindowPosition.X + refElementPosition.X;
             int startY = mainWindowPosition.Y + refElementPosition.Y;
+            AutoItX.WinActivate(mainWindow);
             ClickElement(startX, startY, 10, 10);
         }
 
         private void ClickButton(IntPtr mainWindow, int offsetX, int offsetY)
         {
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
+            AutoItX.WinActivate(mainWindow);
             ClickElement(mainWindowPosition.X, mainWindowPosition.Y, offsetX, offsetY);
         }
 
@@ -348,8 +359,6 @@ namespace ConsoleApp_ForAutoItTest
         {
             int elementPossitionX = startX + offsetX;
             int elementPossitionY = startY + offsetY;
-            //AutoItX.MouseMove(elementPossitionX, elementPossitionY);
-            //Thread.Sleep(TimeSpan.FromSeconds(1));
             AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
             AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
             AutoItX.Sleep(GetRandomDelay(1000));
