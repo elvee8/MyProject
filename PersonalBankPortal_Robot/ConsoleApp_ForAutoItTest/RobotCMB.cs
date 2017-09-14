@@ -1,4 +1,4 @@
-﻿using AutoIt;
+using AutoIt;
 using System;
 using System.Drawing;
 using System.Threading;
@@ -12,6 +12,8 @@ namespace ConsoleApp_ForAutoItTest
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "招商银行个人银行专业版";
+        private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
+        private const string MainWindowText = "功能";
 
         private delegate RobotResult FundOutStep(RobotContext context);
 
@@ -81,7 +83,7 @@ namespace ConsoleApp_ForAutoItTest
                 }
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
                 {
-
+                    
                     AutoItX.Run(programFullPath, "");
                     int errorHappen1 = AutoItX.WinWaitActive(LoginFormTitle, "", 5);
                     if (errorHappen1 == AutoItXSuccess)
@@ -109,34 +111,19 @@ namespace ConsoleApp_ForAutoItTest
                 IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
                 IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
                 EnterPinBox(loginFormWindow, textPassBox, context.LoginPassword);
-                ClickButton2(loginFormWindow, 200, 400);
+                ClickButton(loginFormWindow, 200, 400);
 
-                int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //token key not plugin
-                if (errorHappen1 == AutoItXSuccess)
-                {
-                    AutoItX.WinClose("[TITLE:错误;CLASS:TErrorWithHelpForm]");
-                    return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed1, Error<Authentication Key Missing>");
-                }
-                int errorHappen2 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //login password validate
-                if (errorHappen2 == AutoItXSuccess)
+                int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //login password validate
+                if (warningHappen1 == AutoItXSuccess)
                 {
                     string errorText = AutoItX.WinGetText("[CLASS:TPbBaseMsgForm]");
                     AutoItX.WinClose("[CLASS:TPbBaseMsgForm]");
-                    return RobotResult.Build(context, RobotStatus.ERROR, $"Login Failed2, Error<{errorText.Trim()}>");
+                    return RobotResult.Build(context, RobotStatus.ERROR, $"Login Failed, Error<{errorText.Trim()}>");
                 }
-                int errorHappen3 = AutoItX.WinWaitActive("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能", 60); //main portal window
-                if (errorHappen3 == AutoItXSuccess)
-                {
-                    //Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
-                    return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
-                }
-                int errorHappen4 = AutoItX.WinWaitActive("[TITLE:错误;CLASS: TErrorWithHelpForm]", "", 5); //main portal window
-                if (errorHappen4 == AutoItXSuccess)
-                {
-                    AutoItX.WinClose("[TITLE:错误; CLASS:TErrorWithHelpForm]");
-                    return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed3, Error<Handshake Fault>");
-                }
-                return RobotResult.Build(context, RobotStatus.ERROR, "Login Failed4, Unknown Error<Main Portal Window Not Active>");
+
+                WaitUtils.UntilWinActive(MainWindowTitle, MainWindowText);
+                Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+                return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
             }
             catch (Exception e)
             {
@@ -152,6 +139,7 @@ namespace ConsoleApp_ForAutoItTest
                 AutoItX.WinActivate(mainFormWindow);
 
                 ClickButton(mainFormWindow, 60, 320); // click Transfer button, default 'Same-bank transfer'
+                WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
 
                 if (string.IsNullOrEmpty(context.ToBankName))
                 {
@@ -160,6 +148,8 @@ namespace ConsoleApp_ForAutoItTest
                 }
                 else
                 {
+                    ClickButton(mainFormWindow, 250, 210); // click 'Inter-bank transfer' button
+                    WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleRadioButton; INSTANCE:1]");
                     FillInterBankTransInfo(mainFormWindow, context);
                     FillOtp(mainFormWindow, context);
                 }
@@ -207,8 +197,6 @@ namespace ConsoleApp_ForAutoItTest
 
         private void FillInterBankTransInfo(IntPtr mainFormWindow, RobotContext context)
         {
-            ClickButton(mainFormWindow, 250, 210); // click 'Inter-bank transfer' button
-
             IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:1]");
             EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
 
@@ -299,7 +287,7 @@ namespace ConsoleApp_ForAutoItTest
         #region Helper Methods
         private IntPtr GetMainFormWindow()
         {
-            return AutoItX.WinGetHandle("[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]", "功能");
+            return AutoItX.WinGetHandle(MainWindowTitle, MainWindowText);
         }
 
         private void SearchAndSelectComboBox(IntPtr mainWindow, IntPtr searchComboBox, string value)
@@ -374,29 +362,6 @@ namespace ConsoleApp_ForAutoItTest
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
             AutoItX.WinActivate(mainWindow);
             ClickElement(mainWindowPosition.X, mainWindowPosition.Y, offsetX, offsetY);
-        }
-
-        private void ClickButton2(IntPtr mainWindow, int offsetX, int offsetY)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                LOG.Debug("--------a--------->" + i);
-                ClickButton(mainWindow, offsetX, offsetY);
-                for (int j = 0; j < 10; j++)
-                {
-                    if (AutoItX.WinActive("[CLASS:TErrorWithHelpForm]") != 0)
-                    {
-                        AutoItX.WinClose("[CLASS:TErrorWithHelpForm]");
-                        throw new Exception("Error Throw");
-                    }
-                    if (i == 2 && j == 7)
-                    {
-                        break;
-                    }
-                    LOG.Debug("--------b--------->" + j);
-                    Thread.Sleep(TimeSpan.FromSeconds(2));
-                }
-            }
         }
 
         private void ClickElement(int startX, int startY, int offsetX, int offsetY)

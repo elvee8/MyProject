@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="WaitUtils.cs" />
     <Compile Include="RobotContext.cs" />
     <Compile Include="RobotResult.cs" />
     <Compile Include="RobotStatus.cs" />
