@@ -10,7 +10,9 @@ namespace ConsoleApp_ForAutoItTest
     public class Robot738CMB
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
-        private const int AutoItXSuccess = 1;
+        private const string ProcessName = "PersonalBankPortal.exe";
+        private const string ProgramFullPath = "D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"";
+        private const int AutoItXSuccess = WaitUtils.AutoItXSuccess;
         private const string LoginFormTitle = "招商银行个人银行专业版";
         private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
         private const string MainWindowText = "功能";
@@ -23,7 +25,7 @@ namespace ConsoleApp_ForAutoItTest
             {
                 DoOpenClientApp,
                 DoLogIn,
-                //DoTransfer,
+                DoTransfer,
                 DoLogOut
             };
         }
@@ -69,13 +71,10 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                string processName = "PersonalBankPortal.exe";
-                string programFullPath = "D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"";
-
-                int processExists = AutoItX.ProcessExists(processName);
+                int processExists = AutoItX.ProcessExists(ProcessName);
                 if (processExists != 0)
                 {
-                    int processClose = AutoItX.ProcessClose(processName);
+                    int processClose = AutoItX.ProcessClose(ProcessName);
                     if (processClose == AutoItXSuccess)
                     {
                         LOG.Log(LogLevel.Debug, "TransactionId<{0}>, Kill old process<{1}> done", context.MidasTransactionId, processExists);
@@ -84,7 +83,7 @@ namespace ConsoleApp_ForAutoItTest
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
                 {
                     
-                    AutoItX.Run(programFullPath, "");
+                    AutoItX.Run(ProgramFullPath, "");
                     int errorHappen1 = AutoItX.WinWaitActive(LoginFormTitle, "", 5);
                     if (errorHappen1 == AutoItXSuccess)
                     {
@@ -92,7 +91,7 @@ namespace ConsoleApp_ForAutoItTest
                     }
                     else
                     {
-                        LOG.Error("TransactionId<{0}>, App<{1}> not found", context.MidasTransactionId, programFullPath);
+                        LOG.Error("TransactionId<{0}>, App<{1}> not found", context.MidasTransactionId, ProgramFullPath);
                         throw new Exception("Open App Failed, Error<App Location Not Found>");
                     }
                 }
@@ -143,6 +142,7 @@ namespace ConsoleApp_ForAutoItTest
 
                 FillBankTransInfo(mainFormWindow, context);
                 ClickButton(mainFormWindow, 180, 650); // click 'Next' button
+                //WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
 
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }

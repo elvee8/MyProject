@@ -12,6 +12,7 @@ namespace ConsoleApp_ForAutoItTest
     public class WaitUtils
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
+        public const int AutoItXSuccess = 1;
         private const string ErrorWindowTitle = "[TITLE:错误; CLASS:TErrorWithHelpForm]";
         public static int TimeOut = 60;
         public static int SleepInterval = 2;
@@ -19,16 +20,17 @@ namespace ConsoleApp_ForAutoItTest
         public static void UntilWinActive(string winTitle, string winText)
         {
             DateTime otherDateTime = DateTime.Now.AddSeconds(TimeOut);
+            LOG.Log(LogLevel.Debug, "CheckWinActive Start By<{0}|{1}>", winTitle, winText);
             while (true)
             {
                 int winActive = AutoItX.WinActive(winTitle, winText);
-                if (winActive == 1)
+                if (winActive == AutoItXSuccess)
                 {
                     break;
                 }
-                LOG.Log(LogLevel.Debug, "WinActive Check By<{0}|{1}>", winTitle, winText);
+                LOG.Log(LogLevel.Debug, "CheckWinActive Loop By<{0}|{1}>", winTitle, winText);
                 int errorWinActive = AutoItX.WinActive(ErrorWindowTitle);
-                if (errorWinActive == 1)
+                if (errorWinActive == AutoItXSuccess)
                 {
                     LOG.Error("CheckWinActive Error By<{0}|{1}>", winTitle, winText);
                     AutoItX.WinClose(ErrorWindowTitle);
@@ -46,16 +48,17 @@ namespace ConsoleApp_ForAutoItTest
         public static void UntilControlFocus(string winTitle, string winText, string control)
         {
             DateTime otherDateTime = DateTime.Now.AddSeconds(TimeOut);
+            LOG.Log(LogLevel.Debug, "CheckControlFocus Start By<{0}|{1}>", winTitle, winText);
             while (true)
             {
                 int controlFocus = AutoItX.ControlFocus(winTitle, winText, control);
-                if (controlFocus == 1)
+                if (controlFocus == AutoItXSuccess)
                 {
                     break;
                 }
-                LOG.Log(LogLevel.Debug, "ControlFocus Check By<{0}|{1}|{2}>", winTitle, winText, control);
+                LOG.Log(LogLevel.Debug, "CheckControlFocus Loop By<{0}|{1}|{2}>", winTitle, winText, control);
                 int errorWinActive = AutoItX.WinActive(ErrorWindowTitle);
-                if (errorWinActive == 1)
+                if (errorWinActive == AutoItXSuccess)
                 {
                     LOG.Error("ControlFocus Error By<{0}|{1}|{2}>", winTitle, winText, control);
                     AutoItX.WinClose(ErrorWindowTitle);
