@@ -51,7 +51,7 @@ namespace ConsoleApp_ForAutoItTest
         public static void UntilControlFocus(string midasTxnId, string winTitle, string winText, string control)
         {
             DateTime otherDateTime = DateTime.Now.AddSeconds(TimeOut);
-            LOG.Log(LogLevel.Debug, "CheckControlFocus Start By<{0}|{1}>", winTitle, winText);
+            LOG.Log(LogLevel.Debug, "CheckControlFocus Start By<{0}|{1}|{2}>", winTitle, winText, control);
             while (true)
             {
                 int controlFocus = AutoItX.ControlFocus(winTitle, winText, control);

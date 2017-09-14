@@ -142,7 +142,7 @@ namespace ConsoleApp_ForAutoItTest
 
                 FillBankTransInfo(mainFormWindow, context);
                 ClickButton(mainFormWindow, 180, 650); // click 'Next' button
-                //RobotCMB738Utils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
+                RobotCMB738Utils.UntilControlFocus(context.MidasTransactionId, MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4000]");
 
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
