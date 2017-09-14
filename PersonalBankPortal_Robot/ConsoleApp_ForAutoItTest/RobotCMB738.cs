@@ -7,7 +7,7 @@ using NLog;
 
 namespace ConsoleApp_ForAutoItTest
 {
-    public class Robot738CMB
+    public class RobotCMB738
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
         private const string ProcessName = "PersonalBankPortal.exe";
@@ -82,7 +82,6 @@ namespace ConsoleApp_ForAutoItTest
                 }
                 if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
                 {
-                    
                     AutoItX.Run(ProgramFullPath, "");
                     int errorHappen1 = AutoItX.WinWaitActive(LoginFormTitle, "", 5);
                     if (errorHappen1 == AutoItXSuccess)
@@ -116,11 +115,12 @@ namespace ConsoleApp_ForAutoItTest
                 if (warningHappen1 == AutoItXSuccess)
                 {
                     string errorText = AutoItX.WinGetText("[CLASS:TPbBaseMsgForm]");
+                    RobotCMB738Utils.SaveErrorShot(context.MidasTransactionId);
                     AutoItX.WinClose("[CLASS:TPbBaseMsgForm]");
                     return RobotResult.Build(context, RobotStatus.ERROR, $"Login Failed, Error<{errorText.Trim()}>");
                 }
 
-                WaitUtils.UntilWinActive(MainWindowTitle, MainWindowText);
+                RobotCMB738Utils.UntilWinActive(context.MidasTransactionId, MainWindowTitle, MainWindowText);
                 Thread.Sleep(TimeSpan.FromSeconds(2)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
             }
@@ -138,11 +138,11 @@ namespace ConsoleApp_ForAutoItTest
                 AutoItX.WinActivate(mainFormWindow);
 
                 ClickButton(mainFormWindow, 60, 320); // click 'Transfer' button
-                WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
+                RobotCMB738Utils.UntilControlFocus(context.MidasTransactionId, MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
 
                 FillBankTransInfo(mainFormWindow, context);
                 ClickButton(mainFormWindow, 180, 650); // click 'Next' button
-                //WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
+                //RobotCMB738Utils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
 
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
@@ -170,7 +170,7 @@ namespace ConsoleApp_ForAutoItTest
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox72; INSTANCE:2]");
             EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
         }
-        
+
         private void FillOtp(IntPtr mainFormWindow, RobotContext context)
         {
             ClickButton(mainFormWindow, 550, 410); // click '获取短信验证码' button
