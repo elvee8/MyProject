@@ -55,11 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RobotCMB738.cs" />
-    <Compile Include="RobotCMB738Test.cs" />
     <Compile Include="SendKeyMessage\CatchScreenshot.cs" />
-    <Compile Include="RobotCMB738Utils.cs" />
-    <Compile Include="WaitUtils.cs" />
     <Compile Include="RobotContext.cs" />
     <Compile Include="RobotResult.cs" />
     <Compile Include="RobotStatus.cs" />
@@ -68,7 +64,6 @@
     <Compile Include="SendKeyMessage\MessageCode.cs" />
     <Compile Include="SendKeyMessage\SimulateKey.cs" />
     <Compile Include="SendKeyMessage\VirtualKeyCode.cs" />
-    <Compile Include="TestAutoItX.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
