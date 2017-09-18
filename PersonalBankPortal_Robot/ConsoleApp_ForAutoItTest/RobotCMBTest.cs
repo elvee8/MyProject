@@ -15,18 +15,18 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("---------------------------1234---------------------------");
-            string[] bankNames = new[] { "中国建设银行", "招商银行", "" };
+            string[] bankNames = new[] { "", "招商银行", "" };
             int loopTimes = 1;
             for (int i = 0; i < loopTimes; i++)
             {
                 RobotContext context = new RobotContext();
                 context.MidasTransactionId = "100100" + i;
-                context.LoginPassword = "gh202123";
+                context.LoginPassword = "aa254172";
                 context.ToBankName = bankNames[i];
                 context.ToAccountCity = "苏州";
                 context.ToAccountName = "吕文斌";
                 context.ToAccountNumber = "6214837694277025";
-                context.WithdrawAmount = "1.01";
+                context.WithdrawAmount = "1.00";
                 context.BoTransactionId = "123-4567-8901";
                 RobotCMB robot = new RobotCMB();
                 robot.Transfer(context);

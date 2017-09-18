@@ -2,6 +2,7 @@ using AutoIt;
 using System;
 using System.Drawing;
 using System.Threading;
+using WindowsInput;
 using ConsoleApp_ForAutoItTest.SendKeyMessage;
 using NLog;
 
@@ -11,7 +12,7 @@ namespace ConsoleApp_ForAutoItTest
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
         private const string ProcessName = "PersonalBankPortal.exe";
-        private const string ProgramFullPath = "D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"";
+        private const string ProgramFullPath = "D:\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\syswow64\\PersonalBankPortal.exe\"";
         private const int AutoItXSuccess = WaitUtils.AutoItXSuccess;
         private const string LoginFormTitle = "招商银行个人银行专业版";
         private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
@@ -108,7 +109,63 @@ namespace ConsoleApp_ForAutoItTest
             {
                 IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
                 IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
-                EnterPinBox(loginFormWindow, textPassBox, context.LoginPassword);
+                //EnterPinBox(loginFormWindow, textPassBox, context.LoginPassword);
+
+                var inputSimulator = new InputSimulator();
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_5);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_5);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_4);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_4);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_1);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_1);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+                Thread.Sleep(GetRandomDelay(10));
+                inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 ClickButton(loginFormWindow, 200, 400);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //login password validate
@@ -155,17 +212,17 @@ namespace ConsoleApp_ForAutoItTest
         private void FillBankTransInfo(IntPtr mainFormWindow, RobotContext context)
         {
             IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:Edit; INSTANCE:1]");
-            EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
+            EnterOtpBox(mainFormWindow, textToAccountName, context.ToAccountName);
 
             IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit72; INSTANCE:5]");
-            EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
+            EnterOtpBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
             IntPtr searchComboBoxToAccountBank = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox72; INSTANCE:5]");
             AutoItX.ControlClick(mainFormWindow, searchComboBoxToAccountBank);
             Thread.Sleep(TimeSpan.FromSeconds(1));
 
             IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit72; INSTANCE:4]");
-            EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
+            EnterOtpBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox72; INSTANCE:2]");
             EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
@@ -248,7 +305,7 @@ namespace ConsoleApp_ForAutoItTest
                 ClickToFocus(mainWindow, textBox);
                 AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
                 SimulateKey.SetForegroundWindow(textBox);
-                SimulateKey.ClearText(textBox);
+                //SimulateKey.ClearText(textBox);
                 SimulateKey.SendText(textBox, value);
                 AutoItX.Sleep(GetRandomDelay(1000));
             }
@@ -265,7 +322,7 @@ namespace ConsoleApp_ForAutoItTest
             }
         }
 
-        private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
+        private void EnterTextBox1(IntPtr mainWindow, IntPtr textBox, string value)
         {
             ClickToFocus(mainWindow, textBox);
             AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));

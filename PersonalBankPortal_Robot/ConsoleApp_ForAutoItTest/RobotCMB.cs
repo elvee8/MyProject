@@ -1,7 +1,10 @@
 using AutoIt;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
+using System.Windows.Forms;
+using WindowsInput;
 using ConsoleApp_ForAutoItTest.SendKeyMessage;
 using NLog;
 
@@ -12,16 +15,20 @@ namespace ConsoleApp_ForAutoItTest
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "招商银行个人银行专业版";
+        private const string LoginFormClass = "TWealthLoginFrm";
+        
         private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
         private const string MainWindowText = "功能";
-
+        private const int HWND_BROADCAST = 0xffff;
         private delegate RobotResult FundOutStep(RobotContext context);
+
+        private InputSimulator inputSimulator = new InputSimulator();
 
         private FundOutStep[] AllSteps()
         {
             return new FundOutStep[]
             {
-                DoOpenClientApp,
+                //DoOpenClientApp,
                 DoLogIn,
                 DoTransfer,
                 DoLogOut
@@ -70,7 +77,7 @@ namespace ConsoleApp_ForAutoItTest
             try
             {
                 string processName = "PersonalBankPortal.exe";
-                string programFullPath = "D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"";
+                string programFullPath = "D:\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\syswow64\\PersonalBankPortal.exe\"";
 
                 int processExists = AutoItX.ProcessExists(processName);
                 if (processExists != 0)
@@ -108,10 +115,20 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
+                //D:\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe - run \"C:\\Windows\\syswow64\\PersonalBankPortal.exe\"
+
+                string programFullPath = "D:\\CMB\\Locale.Emulator.2.3.1.1";
+                Process process = new Process();
+                process.StartInfo.FileName = "LEProc.exe";
+                process.StartInfo.WorkingDirectory = programFullPath;
+                process.StartInfo.Arguments = "C:\\Windows\\syswow64\\PersonalBankPortal.exe";
+                process.Start();
+
+
                 IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
-                IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
-                EnterPinBox(loginFormWindow, textPassBox, context.LoginPassword);
-                ClickButton(loginFormWindow, 200, 400);
+                IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72; INSTANCE:1]");
+                EnterPassword(loginFormWindow, textPassBox, context.LoginPassword);
+                ClickButton(loginFormWindow, 250, 400);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //login password validate
                 if (warningHappen1 == AutoItXSuccess)
@@ -161,6 +178,13 @@ namespace ConsoleApp_ForAutoItTest
                     return RobotResult.Build(context, RobotStatus.ERROR, "Transfer Failed1, Error<Withdraw Validate Failed>");
                 }
 
+                int successtrasfer = AutoItX.WinWaitActive("[CLASS:TTransferSuccessFrm]", "", 5);
+                if (successtrasfer == AutoItXSuccess)
+                {
+                    AutoItX.WinClose("[CLASS:TTransferSuccessFrm]");
+                    return RobotResult.Build(context, RobotStatus.SUCCESS, "");
+                }
+                
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
@@ -172,19 +196,30 @@ namespace ConsoleApp_ForAutoItTest
         private void FillSameBankTransInfo(IntPtr mainFormWindow, RobotContext context)
         {
             IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
-            EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
+            //EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
+
+            ClickToFocus(mainFormWindow, textToAccountName);
+            AutoItX.ClipPut(context.ToAccountName);
+            
+            var inputSimulator = new InputSimulator();
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode) VirtualKeyCode.LCONTROL);
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode) VirtualKeyCode.LCONTROL);
+            Thread.Sleep(GetRandomNumber(100));
+            Thread.Sleep(5000);
 
             IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:3]");
-            EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
+            EnterAccountNumber(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
-            IntPtr searchComboBoxToAccountCity = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
-            SearchAndSelectComboBox(mainFormWindow, searchComboBoxToAccountCity, context.ToAccountCity);
-
+            //IntPtr searchComboBoxToAccountCity = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
+            //SearchAndSelectComboBox(mainFormWindow, searchComboBoxToAccountCity, context.ToAccountCity);
+            Thread.Sleep(2000);
             IntPtr textTransferAmount = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:4]");
-            EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
+            EnterOtpBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
-            EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
+            //EnterOtpBox(mainFormWindow, textPostscript, context.BoTransactionId);
 
             ClickButton(mainFormWindow, 350, 640); // click 'Next' button
             int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择的收款方地址与收款方账户所属开户地不符", 10);
@@ -214,7 +249,7 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:2]");
-            EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
+            //EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
 
             ClickButton(mainFormWindow, 350, 660); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(7));
@@ -222,7 +257,7 @@ namespace ConsoleApp_ForAutoItTest
 
         private void FillOtp(IntPtr mainFormWindow, RobotContext context)
         {
-            ClickButton(mainFormWindow, 550, 410); // click '获取短信验证码' button
+            //ClickButton(mainFormWindow, 550, 410); // click '获取短信验证码' button
 
             int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码", 5);
             if (warningHappen1 == AutoItXSuccess)
@@ -238,11 +273,11 @@ namespace ConsoleApp_ForAutoItTest
             }
 
             // wait to get OTP
-            context.Otp = "6543210";
+            context.Otp = "452541";
 
             IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
             EnterOtpBox(mainFormWindow, textOtpBox, context.Otp);
-            ClickButton(mainFormWindow, 420, 610); // click 'Next' button
+            ClickButton(mainFormWindow, 420, 530); // click 'Next' button
             Thread.Sleep(TimeSpan.FromSeconds(5));
         }
 
@@ -305,7 +340,11 @@ namespace ConsoleApp_ForAutoItTest
             AutoItX.MouseUp();
 
             AutoItX.ClipPut(value);
-            AutoItX.Send("^v");
+            //var inputSimulator = new InputSimulator();
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
 
             AutoItX.MouseMove(elementPossitionX + 100, elementPossitionY + 70);
             AutoItX.MouseDown();
@@ -319,31 +358,177 @@ namespace ConsoleApp_ForAutoItTest
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
                 ClickToFocus(mainWindow, textBox);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomNumber(100));
                 SimulateKey.SetForegroundWindow(textBox);
                 SimulateKey.ClearText(textBox);
                 SimulateKey.SendText(textBox, value);
-                AutoItX.Sleep(GetRandomDelay(1000));
             }
         }
 
-        private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)
+        private void EnterAccountNumber(IntPtr mainWindow, IntPtr textBox, string value)
         {
-            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
-            {
-                ClickToFocus(mainWindow, textBox);
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                AutoItX.Send(value);
-                AutoItX.Sleep(GetRandomDelay(1000));
-            }
+
+            ClickToFocus(mainWindow, textBox);
+            AutoItX.ClipPut(value);
+
+            //var inputSimulator = new InputSimulator();
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            Thread.Sleep(GetRandomNumber(100));
+
+
+            
+
+            //if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+            //{
+            //    var inputSimulator = new InputSimulator();
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_6);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_1);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_4);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_8);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_3);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_6);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_9);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_4);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_0);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+            //    AutoItX.Sleep(GetRandomDelay(100));
+            //    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_5);
+            //}
         }
+
+        private void EnterPassword(IntPtr mainWindow, IntPtr textBox, string value)
+        {
+            //if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+            //{
+            //AutoItX.ControlFocus(mainWindow, textBox);
+            //SimulateKey.SetForegroundWindow(textBox);
+            //SimulateKey.ClearText(textBox);
+            //ClickButton(textBox, 30, 10);
+            //var x = new IntPtr(HWND_BROADCAST);
+            //SimulateKey.SendText(textBox, value);
+            //Console.Write("click");
+
+
+            //Console.Write("Start");
+            //SimulateKey.Sendkey(0x41);
+            //Thread.Sleep(GetRandomNumber(20));
+            //SimulateKey.Sendkey(0x41);
+            //Thread.Sleep(GetRandomNumber(20));
+            //SimulateKey.Sendkey(0x32);
+            //Thread.Sleep(GetRandomNumber(150));
+            //SimulateKey.Sendkey(0x35);
+            //Thread.Sleep(GetRandomNumber(50));
+            //SimulateKey.Sendkey(0x34);
+            //Thread.Sleep(GetRandomNumber(10));
+            //SimulateKey.Sendkey(0x31);
+            //Thread.Sleep(GetRandomNumber(50));
+            //SimulateKey.Sendkey(0x37);
+            //Thread.Sleep(GetRandomNumber(100));
+            //SimulateKey.Sendkey(0x32);
+
+            //Thread.Sleep(10000);
+            //Console.Write("end");
+
+            //AutoItX.WinActivate(mainWindow);
+
+
+
+            ////ENTER
+            //SimulateKey.Sendkey(0x0D);
+            Thread.Sleep(GetRandomNumber(500));
+
+            ////AutoItX.MouseMove(840, 480);
+            inputSimulator.Mouse.LeftButtonClick();
+            inputSimulator.Mouse.MoveMouseTo(34000, 42700); //Login
+
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            inputSimulator.Mouse.MoveMouseTo(34000, 36000); // Message box
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            AutoItX.Sleep(GetRandomNumber(100));
+
+            //inputSimulator.Mouse.LeftButtonClick();
+
+            SimulateKey.SetForegroundWindow(SimulateKey.FindWindow(LoginFormClass, null));
+            SimulateKey.BringWindowToTop(SimulateKey.FindWindow(LoginFormClass, null));
+            SimulateKey.SetForegroundWindow(SimulateKey.FindWindow(LoginFormClass, null));
+            SimulateKey.BringWindowToTop(SimulateKey.FindWindow(LoginFormClass, null));
+
+
+
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.MoveMouseTo(34000,39100);
+
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            AutoItX.Sleep(GetRandomNumber(100));
+
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_5);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_4);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_1);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+            AutoItX.Sleep(GetRandomNumber(100));
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+
+            inputSimulator.Mouse.MoveMouseTo(34000, 42700);
+            inputSimulator.Mouse.LeftButtonClick();
+
+            //AutoItX.Sleep(GetRandomDelay(1000));
+            //}
+        }
+
+        //private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)
+        //{
+        //    if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+        //    {
+        //        ClickToFocus(mainWindow, textBox);
+
+        //        AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+        //        //AutoItX.Send(value);
+        //        SendKeys.SendWait("aa254172");
+        //        AutoItX.Sleep(GetRandomDelay(1000));
+        //    }
+        //}
 
         private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
             ClickToFocus(mainWindow, textBox);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomNumber(100));
             AutoItX.ControlSetText(mainWindow, textBox, value);
-            AutoItX.Sleep(GetRandomDelay(1000));
+            AutoItX.Sleep(GetRandomNumber(1000));
         }
 
         private void ClickToFocus(IntPtr mainWindow, IntPtr refElement)
@@ -368,15 +553,15 @@ namespace ConsoleApp_ForAutoItTest
         {
             int elementPossitionX = startX + offsetX;
             int elementPossitionY = startY + offsetY;
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomNumber(100));
             AutoItX.MouseClick("LEFT", elementPossitionX, elementPossitionY);
-            AutoItX.Sleep(GetRandomDelay(1000));
+            AutoItX.Sleep(GetRandomNumber(1000));
         }
 
-        private int GetRandomDelay(int multiplier)
+        private int GetRandomNumber(int multiplier)
         {
             var rnd = new Random();
-            var value = rnd.Next(1, 3);
+            var value = rnd.Next(3, 7);
             return value * multiplier;
         }
 
