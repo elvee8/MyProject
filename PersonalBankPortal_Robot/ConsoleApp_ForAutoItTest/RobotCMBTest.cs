@@ -11,8 +11,8 @@ namespace ConsoleApp_ForAutoItTest
             string[] bankNames = { "", "交通银行", "" };
             string[] acctNames = { "吕文斌", "阿拉木斯", "" };
             string[] acctNums = { "6214837694277025", "6222620910034272595", "" };
-            int loopTimes = 2;
-            for (int i = 1; i < loopTimes; i++)
+            int loopTimes = 1;
+            for (int i = 0; i < loopTimes; i++)
             {
                 RobotContext context = new RobotContext();
                 context.MidasTransactionId = "100100" + i;

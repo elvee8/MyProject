@@ -12,9 +12,12 @@ namespace ConsoleApp_ForAutoItTest
     public class RobotCMB
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
-        private const int AutoItXSuccess = 1;
+        private const string LocaleEmulatorWorkingDirectory = @"D:\CMB\Locale.Emulator.2.3.1.1";
+        private const string LocaleEmulatorFileName = "LEProc.exe";
+        private const string PersonalBankPortalPath = @"C:\Windows\syswow64\PersonalBankPortal.exe";
         private const string ProcessName = "PersonalBankPortal.exe";
-        private const string LoginFormTitle = "招商银行个人银行专业版";
+        private const int AutoItXSuccess = 1;
+        private const string LoginFormTitle = "[TITLE:招商银行个人银行专业版; CLASS:TWealthLoginFrm]";
         private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
         private const string MainWindowText = "功能";
 
@@ -74,11 +77,10 @@ namespace ConsoleApp_ForAutoItTest
             {
                 TryToKillOldProcess(context.MidasTransactionId);
 
-                string programFullPath = "D:\\CMB\\Locale.Emulator.2.3.1.1";
                 Process process = new Process();
-                process.StartInfo.FileName = "LEProc.exe";
-                process.StartInfo.WorkingDirectory = programFullPath;
-                process.StartInfo.Arguments = "C:\\Windows\\syswow64\\PersonalBankPortal.exe";
+                process.StartInfo.FileName = LocaleEmulatorFileName;
+                process.StartInfo.WorkingDirectory = LocaleEmulatorWorkingDirectory;
+                process.StartInfo.Arguments = PersonalBankPortalPath;
                 process.Start();
 
                 Thread.Sleep(TimeSpan.FromSeconds(2));
