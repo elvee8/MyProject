@@ -78,22 +78,7 @@ namespace ConsoleApp_ForAutoItTest.SendKeyMessage
             return result;
         }
 
-        public static uint GetKeyCode(char character)
-        {
-            const uint deltaUppercaseAndLowercase = 32;
-            var charCode = ConvertCharToInt(character);
-            var isNumber = charCode >= VirtualKeyCode.VK_0 && charCode <= VirtualKeyCode.VK_9;
-            var isUppercase = charCode >= VirtualKeyCode.VK_A && charCode <= VirtualKeyCode.VK_Z;
-            var isLowercase = charCode >= VirtualKeyCode.VK_A + deltaUppercaseAndLowercase && charCode <= VirtualKeyCode.VK_Z + deltaUppercaseAndLowercase;
-            if (isNumber || isUppercase || isLowercase)
-            {
-                uint wParamChar = isLowercase ? (charCode - deltaUppercaseAndLowercase) : charCode;
-                return wParamChar;
-            }
-            return charCode;
-        }
-
-        private static uint ConvertCharToInt(char character)
+        public static uint ConvertCharToInt(char character)
         {
             return (uint)(character - '0') + VirtualKeyCode.VK_0;
         }

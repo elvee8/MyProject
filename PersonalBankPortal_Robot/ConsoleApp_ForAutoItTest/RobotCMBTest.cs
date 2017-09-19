@@ -23,7 +23,7 @@ namespace ConsoleApp_ForAutoItTest
                 context.ToAccountName = acctNames[i];
                 context.ToAccountNumber = acctNums[i];
                 context.WithdrawAmount = "1.00";
-                context.BoTransactionId = "123-4567-890" + i;
+                context.BoTransactionId = "123-4567-891" + i;
                 RobotCMB robot = new RobotCMB();
                 robot.Transfer(context);
                 Thread.Sleep(TimeSpan.FromSeconds(10));

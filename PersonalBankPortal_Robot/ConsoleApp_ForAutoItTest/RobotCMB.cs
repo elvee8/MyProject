@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
-using WindowsInput;
 
 namespace ConsoleApp_ForAutoItTest
 {
@@ -83,7 +82,7 @@ namespace ConsoleApp_ForAutoItTest
                 process.StartInfo.Arguments = PersonalBankPortalPath;
                 process.Start();
 
-                Thread.Sleep(TimeSpan.FromSeconds(2));
+                Thread.Sleep(TimeSpan.FromSeconds(3));
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Open Client App Success!");
             }
             catch (Exception e)
@@ -329,12 +328,7 @@ namespace ConsoleApp_ForAutoItTest
         {
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
-                InputSimulator inputSimulator = new InputSimulator();
-                foreach (char item in value)
-                {
-                    Thread.Sleep(GetRandomDelay(50));
-                    inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)SimulateKey.GetKeyCode(item));
-                }
+                InputSimulatorUtils.KeyIn(value);
             }
         }
 
