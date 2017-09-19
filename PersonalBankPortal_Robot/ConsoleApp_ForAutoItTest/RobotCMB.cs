@@ -29,9 +29,9 @@ namespace ConsoleApp_ForAutoItTest
         {
             return new FundOutStep[]
             {
-                //DoOpenClientApp,
-                //DoLogIn,
-                //DoTransfer,
+                DoOpenClientApp,
+                DoLogIn,
+                DoTransfer,
                 DoLogOut
             };
         }

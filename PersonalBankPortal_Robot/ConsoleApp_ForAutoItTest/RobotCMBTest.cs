@@ -17,7 +17,7 @@ namespace ConsoleApp_ForAutoItTest
             string[] bankNames = new[] { "", "交通银行", "" };
             string[] acctNames = new[] { "吕文斌", "阿拉木斯", "" };
             string[] acctNums = new[] { "6214837694277025", "6222620910034272595", "" };
-            int loopTimes = 2;
+            int loopTimes = 1;
             for (int i = 0; i < loopTimes; i++)
             {
                 RobotContext context = new RobotContext();
