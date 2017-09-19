@@ -132,18 +132,127 @@ namespace ConsoleApp_ForAutoItTest
                 //ClickButton(mainFormWindow, 60, 320); // click Transfer button, default 'Same-bank transfer'
                 //WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
 
+                if (string.IsNullOrEmpty(context.ToBankName))
+                {
+                    FillSameBankTransInfo(context);
+                }
+                else
+                {
+                    inputSimulator.Mouse.MoveMouseTo(12000, 18000); //Inter Transfer Tab Button
+                    Thread.Sleep(GetRandomNumber(100));
+                    inputSimulator.Mouse.LeftButtonClick();
 
-
-                FillSameBankTransInfo(context);
+                    FillInterBankTransInfo(context);
+                }
+                
                 FillTransferPassword(context);
-
-               
+                
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
             {
                 return RobotResult.Build(context, RobotStatus.ERROR, e.Message);
             }
+        }
+
+        private void FillInterBankTransInfo(RobotContext context)
+        {
+            Thread.Sleep(2000);
+
+
+            Thread thread = new Thread(() => Clipboard.SetText(context.ToAccountName));
+            thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+            thread.Start();
+            thread.Join();
+
+            inputSimulator.Mouse.MoveMouseTo(14000, 25500); //Account Name
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            Thread.Sleep(GetRandomNumber(100));
+            Thread.Sleep(5000);
+
+
+
+
+            thread = new Thread(() => Clipboard.SetText(context.ToAccountNumber));
+            thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+            thread.Start();
+            thread.Join();
+
+            inputSimulator.Mouse.MoveMouseTo(14000, 28200); //Account Number
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            Thread.Sleep(GetRandomNumber(100));
+            Thread.Sleep(5000);
+
+
+            inputSimulator.Mouse.MoveMouseTo(13000, 30500); //Select For Tranfer Type
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            Thread.Sleep(GetRandomNumber(1000));
+
+
+            //Bank Name COPY
+            thread = new Thread(() => Clipboard.SetText(context.ToBankName));
+            thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+            thread.Start();
+            thread.Join();
+
+            inputSimulator.Mouse.MoveMouseTo(14000, 33500); //Bank Name
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            Thread.Sleep(GetRandomNumber(200));
+
+
+            inputSimulator.Mouse.MoveMouseTo(14000, 35200); //bank Search
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            Thread.Sleep(GetRandomNumber(200));
+
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            inputSimulator.Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_V);
+            inputSimulator.Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.LCONTROL);
+            Thread.Sleep(GetRandomNumber(100));
+            Thread.Sleep(1000);
+            
+            inputSimulator.Mouse.MoveMouseTo(14000, 37000); //bank Select
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            Thread.Sleep(GetRandomNumber(100));
+
+
+            inputSimulator.Mouse.MoveMouseTo(14000, 37500); //Amount
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+            
+            inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_1);
+
+            Thread.Sleep(GetRandomNumber(100));
+
+
+            inputSimulator.Mouse.MoveMouseTo(15000, 45500); //Transfer Okay
+            Thread.Sleep(GetRandomNumber(100));
+            inputSimulator.Mouse.LeftButtonClick();
+
+            //Thread.Sleep(GetRandomNumber(1000));
+            //inputSimulator.Mouse.MoveMouseTo(31000, 36500); //Transfer Okay Confirm
+            //Thread.Sleep(GetRandomNumber(100));
+            //inputSimulator.Mouse.LeftButtonClick();
+
+
+            Thread.Sleep(GetRandomNumber(2000));
+
         }
 
         private void FillSameBankTransInfo(RobotContext context)
@@ -236,8 +345,6 @@ namespace ConsoleApp_ForAutoItTest
             //    ClickButton(warningPopWin1, 300, 150);
             //}
         }
-
-
 
         private void FillTransferPassword(RobotContext context)
         {

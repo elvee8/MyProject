@@ -14,17 +14,19 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("---------------------------1234---------------------------");
-            string[] bankNames = new[] { "", "招商银行", "" };
-            int loopTimes = 1;
-            for (int i = 0; i < loopTimes; i++)
+            string[] bankNames = new[] { "", "交通银行", "" };
+            string[] acctNames = new[] { "吕文斌", "阿拉木斯", "" };
+            string[] acctNums = new[] { "6214837694277025", "6222620910034272595", "" };
+            int loopTimes = 2;
+            for (int i = 1; i < loopTimes; i++)
             {
                 RobotContext context = new RobotContext();
                 context.MidasTransactionId = "100100" + i;
                 context.LoginPassword = "aa254172";
                 context.ToBankName = bankNames[i];
                 context.ToAccountCity = "苏州";
-                context.ToAccountName = "吕文斌";
-                context.ToAccountNumber = "6214837694277025";
+                context.ToAccountName = acctNames[i];
+                context.ToAccountNumber = acctNums[i];
                 context.WithdrawAmount = "1.00";
                 context.BoTransactionId = "123-4567-8901";
                 RobotCMB robot = new RobotCMB();
