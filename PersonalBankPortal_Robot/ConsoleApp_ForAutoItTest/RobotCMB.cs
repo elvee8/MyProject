@@ -1,7 +1,9 @@
 using AutoIt;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
+using WindowsInput;
 using ConsoleApp_ForAutoItTest.SendKeyMessage;
 using NLog;
 
@@ -14,6 +16,7 @@ namespace ConsoleApp_ForAutoItTest
         private const string LoginFormTitle = "招商银行个人银行专业版";
         private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
         private const string MainWindowText = "功能";
+        private InputSimulator inputSimulator = new InputSimulator();
 
         private delegate RobotResult FundOutStep(RobotContext context);
 
@@ -69,33 +72,13 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
-                string processName = "PersonalBankPortal.exe";
-                string programFullPath = "D:\\MIDAS\\CMB\\Locale.Emulator.2.3.1.1\\LEProc.exe -run \"C:\\Windows\\SysWOW64\\PersonalBankPortal.exe\"";
+                string programFullPath = "D:\\CMB\\Locale.Emulator.2.3.1.1";
+                Process process = new Process();
+                process.StartInfo.FileName = "LEProc.exe";
+                process.StartInfo.WorkingDirectory = programFullPath;
+                process.StartInfo.Arguments = "C:\\Windows\\syswow64\\PersonalBankPortal.exe";
+                process.Start();
 
-                int processExists = AutoItX.ProcessExists(processName);
-                if (processExists != 0)
-                {
-                    int processClose = AutoItX.ProcessClose(processName);
-                    if (processClose == AutoItXSuccess)
-                    {
-                        LOG.Log(LogLevel.Debug, "TransactionId<{0}>, Kill old process<{1}> done", context.MidasTransactionId, processExists);
-                    }
-                }
-                if (AutoItX.WinExists(LoginFormTitle) != AutoItXSuccess)
-                {
-                    
-                    AutoItX.Run(programFullPath, "");
-                    int errorHappen1 = AutoItX.WinWaitActive(LoginFormTitle, "", 5);
-                    if (errorHappen1 == AutoItXSuccess)
-                    {
-                        Thread.Sleep(TimeSpan.FromSeconds(3));
-                    }
-                    else
-                    {
-                        LOG.Error("TransactionId<{0}>, App<{1}> not found", context.MidasTransactionId, programFullPath);
-                        throw new Exception("Open App Failed, Error<App Location Not Found>");
-                    }
-                }
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Open Client App Success!");
             }
             catch (Exception e)
@@ -108,10 +91,12 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
+                Thread.Sleep(TimeSpan.FromSeconds(3));
+
                 IntPtr loginFormWindow = AutoItX.WinGetHandle(LoginFormTitle);
                 IntPtr textPassBox = AutoItX.ControlGetHandle(loginFormWindow, "[CLASS:TCMBStyleEdit72]");
-                EnterPinBox(loginFormWindow, textPassBox, context.LoginPassword);
-                ClickButton(loginFormWindow, 200, 400);
+                EnterLoginBox(loginFormWindow, textPassBox, context.LoginPassword);
+                ClickButton(loginFormWindow, textPassBox, 70, 70);
 
                 int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "", 10); //login password validate
                 if (warningHappen1 == AutoItXSuccess)
@@ -135,6 +120,8 @@ namespace ConsoleApp_ForAutoItTest
         {
             try
             {
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
 
@@ -144,14 +131,14 @@ namespace ConsoleApp_ForAutoItTest
                 if (string.IsNullOrEmpty(context.ToBankName))
                 {
                     FillSameBankTransInfo(mainFormWindow, context);
-                    FillOtp(mainFormWindow, context);
+                    FillWithdrawPin(mainFormWindow, context);
                 }
                 else
                 {
                     ClickButton(mainFormWindow, 250, 210); // click 'Inter-bank transfer' button
                     WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleRadioButton; INSTANCE:1]");
                     FillInterBankTransInfo(mainFormWindow, context);
-                    FillOtp(mainFormWindow, context);
+                    FillWithdrawPin(mainFormWindow, context);
                 }
 
                 int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //transfer pre-check failed
@@ -160,6 +147,12 @@ namespace ConsoleApp_ForAutoItTest
                     AutoItX.WinClose("[TITLE:错误;CLASS:TErrorWithHelpForm]");
                     return RobotResult.Build(context, RobotStatus.ERROR, "Transfer Failed1, Error<Withdraw Validate Failed>");
                 }
+
+                WaitUtils.UntilWinActive("[CLASS:TTransferSuccessFrm]", context.ToAccountName);
+
+                Thread.Sleep(GetRandomDelay(1000));
+                AutoItX.WinClose("[CLASS:TTransferSuccessFrm]");
+                Thread.Sleep(GetRandomDelay(1000));
 
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
@@ -184,7 +177,7 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:1]");
-            EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
+            EnterComboBoxBox(mainFormWindow, textPostscript, context.BoTransactionId);
 
             ClickButton(mainFormWindow, 350, 640); // click 'Next' button
             int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择的收款方地址与收款方账户所属开户地不符", 10);
@@ -214,42 +207,25 @@ namespace ConsoleApp_ForAutoItTest
             EnterTextBox(mainFormWindow, textTransferAmount, context.WithdrawAmount);
 
             IntPtr textPostscript = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleComboBox; INSTANCE:2]");
-            EnterPinBox(mainFormWindow, textPostscript, context.BoTransactionId);
+            EnterComboBoxBox(mainFormWindow, textPostscript, context.BoTransactionId);
 
             ClickButton(mainFormWindow, 350, 660); // click 'Next' button
-            Thread.Sleep(TimeSpan.FromSeconds(7));
         }
 
-        private void FillOtp(IntPtr mainFormWindow, RobotContext context)
+        private void FillWithdrawPin(IntPtr mainFormWindow, RobotContext context)
         {
-            ClickButton(mainFormWindow, 550, 410); // click '获取短信验证码' button
-
-            int warningHappen1 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码", 5);
-            if (warningHappen1 == AutoItXSuccess)
-            {
-                IntPtr warningPopWin1 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "选择通过短信方式获取验证码");
-                ClickButton(warningPopWin1, 250, 170);
-            }
-            int warningHappen2 = AutoItX.WinWaitActive("[CLASS:TPbBaseMsgForm]", "通过短信方式获取验证码的请求提交成功", 10);
-            if (warningHappen2 == AutoItXSuccess)
-            {
-                IntPtr warningPopWin2 = AutoItX.WinGetHandle("[CLASS:TPbBaseMsgForm]", "通过短信方式获取验证码的请求提交成功");
-                ClickButton(warningPopWin2, 300, 160);
-            }
-
-            // wait to get OTP
-            context.Otp = "6543210";
-
-            IntPtr textOtpBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
-            EnterOtpBox(mainFormWindow, textOtpBox, context.Otp);
-            ClickButton(mainFormWindow, 420, 610); // click 'Next' button
-            Thread.Sleep(TimeSpan.FromSeconds(5));
+            IntPtr textPinBox = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBEdit; INSTANCE:1]");
+            EnterWithdrawPinBox(mainFormWindow, textPinBox, context.TokenWithdrawPin);
+            ClickButton(mainFormWindow, textPinBox, 70, 50); // click 'Next' button
+            Thread.Sleep(GetRandomDelay(1000));
         }
 
         private RobotResult DoLogOut(RobotContext context)
         {
             try
             {
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
 
@@ -314,54 +290,87 @@ namespace ConsoleApp_ForAutoItTest
             Thread.Sleep(TimeSpan.FromSeconds(1)); // stop to make sure the dropdown selected done
         }
 
-        private void EnterOtpBox(IntPtr mainWindow, IntPtr textBox, string value)
+        private void EnterWithdrawPinBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
-                ClickToFocus(mainWindow, textBox);
+                AutoItX.Sleep(GetRandomDelay(100));
                 AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-                SimulateKey.SetForegroundWindow(textBox);
-                SimulateKey.ClearText(textBox);
                 SimulateKey.SendText(textBox, value);
-                AutoItX.Sleep(GetRandomDelay(1000));
+                AutoItX.Sleep(GetRandomDelay(100));
             }
         }
 
-        private void EnterPinBox(IntPtr mainWindow, IntPtr textBox, string value)
+        private void EnterComboBoxBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
                 ClickToFocus(mainWindow, textBox);
+                AutoItX.Sleep(GetRandomDelay(100));
                 AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
                 AutoItX.Send(value);
-                AutoItX.Sleep(GetRandomDelay(1000));
+                AutoItX.Sleep(GetRandomDelay(100));
+            }
+        }
+        
+        private void EnterLoginBox(IntPtr mainWindow, IntPtr textBox, string value)
+        {
+            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+            {
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_A);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_5);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_4);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_1);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_7);
+                Thread.Sleep(GetRandomDelay(100));
+                inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)VirtualKeyCode.VK_2);
             }
         }
 
         private void EnterTextBox(IntPtr mainWindow, IntPtr textBox, string value)
         {
-            ClickToFocus(mainWindow, textBox);
-            AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
-            AutoItX.ControlSetText(mainWindow, textBox, value);
-            AutoItX.Sleep(GetRandomDelay(1000));
+            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
+            {
+                AutoItX.Sleep(GetRandomDelay(100));
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(100));
+                AutoItX.ControlSetText(mainWindow, textBox, value);
+                AutoItX.Sleep(GetRandomDelay(100));
+            }
         }
 
-        private void ClickToFocus(IntPtr mainWindow, IntPtr refElement)
+       private void ClickButton(IntPtr mainWindow, int offsetX, int offsetY)
         {
-            ClearTextBox(mainWindow, refElement);
+            AutoItX.WinActivate(mainWindow);
+            Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
+            ClickElement(mainWindowPosition.X, mainWindowPosition.Y, offsetX, offsetY);
+        }
+
+        private void ClickButton(IntPtr mainWindow, IntPtr refElement, int offsetX, int offsetY)
+        {
+            AutoItX.WinActivate(mainWindow);
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
             Rectangle refElementPosition = AutoItX.ControlGetPos(mainWindow, refElement);
             int startX = mainWindowPosition.X + refElementPosition.X;
             int startY = mainWindowPosition.Y + refElementPosition.Y;
-            AutoItX.WinActivate(mainWindow);
-            ClickElement(startX, startY, 10, 10);
+            ClickElement(startX, startY, offsetX, offsetY);
         }
 
-        private void ClickButton(IntPtr mainWindow, int offsetX, int offsetY)
+        private void ClickToFocus(IntPtr mainWindow, IntPtr refElement)
         {
             Rectangle mainWindowPosition = AutoItX.WinGetPos(mainWindow);
-            AutoItX.WinActivate(mainWindow);
-            ClickElement(mainWindowPosition.X, mainWindowPosition.Y, offsetX, offsetY);
+            Rectangle refElementPosition = AutoItX.ControlGetPos(mainWindow, refElement);
+            int startX = mainWindowPosition.X + refElementPosition.X;
+            int startY = mainWindowPosition.Y + refElementPosition.Y;
+            ClickElement(startX, startY, 10, 10);
         }
 
         private void ClickElement(int startX, int startY, int offsetX, int offsetY)
@@ -376,21 +385,8 @@ namespace ConsoleApp_ForAutoItTest
         private int GetRandomDelay(int multiplier)
         {
             var rnd = new Random();
-            var value = rnd.Next(1, 3);
+            var value = rnd.Next(3, 7);
             return value * multiplier;
-        }
-
-        private void ClearTextBox(IntPtr mainWindow, IntPtr textBox)
-        {
-            if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
-            {
-                string textBoxContent = AutoItX.ControlGetText(mainWindow, textBox);
-                while (!string.IsNullOrEmpty(textBoxContent))
-                {
-                    AutoItX.Send("{BACKSPACE}");
-                    textBoxContent = AutoItX.ControlGetText(mainWindow, textBox);
-                }
-            }
         }
         #endregion
 

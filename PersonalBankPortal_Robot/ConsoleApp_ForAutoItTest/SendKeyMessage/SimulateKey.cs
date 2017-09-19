@@ -20,6 +20,17 @@ namespace ConsoleApp_ForAutoItTest.SendKeyMessage
 
         [DllImport("User32.dll")]
         private static extern int SendMessage(IntPtr hWnd, uint wMsg, uint wParam, uint lParam);
+        
+        [DllImport("User32.dll", EntryPoint = "FindWindow")]
+        private static extern IntPtr FindWindowNative(string className, string windowName);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool BringWindowToTop(IntPtr hWnd);
+
+        public static IntPtr FindWindow(string className, string windowName)
+        {
+            return FindWindowNative(className, windowName);
+        }
 
         public static bool SendText(IntPtr hWnd, string text)
         {
