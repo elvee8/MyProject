@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using AutoIt;
 
 namespace ConsoleApp_ForAutoItTest
 {
@@ -15,11 +8,11 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("---------------------------1234---------------------------");
-            string[] bankNames = new[] { "", "交通银行", "" };
-            string[] acctNames = new[] { "吕文斌", "阿拉木斯", "" };
-            string[] acctNums = new[] { "6214837694277025", "6222620910034272595", "" };
-            int loopTimes = 1;
-            for (int i = 0; i < loopTimes; i++)
+            string[] bankNames = { "", "交通银行", "" };
+            string[] acctNames = { "吕文斌", "阿拉木斯", "" };
+            string[] acctNums = { "6214837694277025", "6222620910034272595", "" };
+            int loopTimes = 2;
+            for (int i = 1; i < loopTimes; i++)
             {
                 RobotContext context = new RobotContext();
                 context.MidasTransactionId = "100100" + i;

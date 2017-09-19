@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace ConsoleApp_ForAutoItTest.SendKeyMessage
 {
@@ -20,7 +17,7 @@ namespace ConsoleApp_ForAutoItTest.SendKeyMessage
 
         [DllImport("User32.dll")]
         private static extern int SendMessage(IntPtr hWnd, uint wMsg, uint wParam, uint lParam);
-        
+
         [DllImport("User32.dll", EntryPoint = "FindWindow")]
         private static extern IntPtr FindWindowNative(string className, string windowName);
 
@@ -37,6 +34,7 @@ namespace ConsoleApp_ForAutoItTest.SendKeyMessage
             var isSuccess = false;
             foreach (var item in text)
             {
+                Thread.Sleep(GetRandomDelay(50));
                 isSuccess = SendChar(hWnd, item);
                 if (!isSuccess)
                 {
@@ -80,9 +78,31 @@ namespace ConsoleApp_ForAutoItTest.SendKeyMessage
             return result;
         }
 
+        public static uint GetKeyCode(char character)
+        {
+            const uint deltaUppercaseAndLowercase = 32;
+            var charCode = ConvertCharToInt(character);
+            var isNumber = charCode >= VirtualKeyCode.VK_0 && charCode <= VirtualKeyCode.VK_9;
+            var isUppercase = charCode >= VirtualKeyCode.VK_A && charCode <= VirtualKeyCode.VK_Z;
+            var isLowercase = charCode >= VirtualKeyCode.VK_A + deltaUppercaseAndLowercase && charCode <= VirtualKeyCode.VK_Z + deltaUppercaseAndLowercase;
+            if (isNumber || isUppercase || isLowercase)
+            {
+                uint wParamChar = isLowercase ? (charCode - deltaUppercaseAndLowercase) : charCode;
+                return wParamChar;
+            }
+            return charCode;
+        }
+
         private static uint ConvertCharToInt(char character)
         {
             return (uint)(character - '0') + VirtualKeyCode.VK_0;
+        }
+
+        private static int GetRandomDelay(int multiplier)
+        {
+            var rnd = new Random();
+            var value = rnd.Next(3, 7);
+            return value * multiplier;
         }
 
     }
