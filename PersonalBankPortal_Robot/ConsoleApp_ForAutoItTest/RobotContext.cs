@@ -9,6 +9,8 @@ namespace ConsoleApp_ForAutoItTest
     public class RobotContext
     {
         public string MidasTransactionId { get; set; }
+        public string FromAccountNumber { get; set; }
+        public string FromAccountName { get; set; }
         public string LoginPassword { get; set; }
         public string ToAccountNumber { get; set; }
         public string ToAccountName { get; set; }

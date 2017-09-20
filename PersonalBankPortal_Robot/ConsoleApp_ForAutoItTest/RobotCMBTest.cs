@@ -8,12 +8,17 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("---------------------------1234---------------------------");
+
             RobotContext context = new RobotContext();
+            context.FromAccountNumber = "6214832004002670";
+            context.FromAccountName = "詹德宏";
             context.LoginPassword = "aa254172";
             context.TokenWithdrawPin = "452541";
+
             string[] bankNames = { "", "交通银行", "" };
             string[] acctNames = { "吕文斌", "阿拉木斯", "" };
             string[] acctNums = { "6214837694277025", "6222620910034272595", "" };
+
             int loopTimes = 1;
             for (int i = 0; i < loopTimes; i++)
             {
@@ -28,6 +33,7 @@ namespace ConsoleApp_ForAutoItTest
                 robot.Transfer(context);
                 Thread.Sleep(TimeSpan.FromSeconds(10));
             }
+
             Console.WriteLine("---------------------------5678---------------------------");
             Console.ReadKey();
         }

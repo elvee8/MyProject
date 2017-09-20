@@ -4,6 +4,7 @@ using NLog;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 
 namespace ConsoleApp_ForAutoItTest
@@ -11,10 +12,11 @@ namespace ConsoleApp_ForAutoItTest
     public class RobotCMB
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
-        private const string LocaleEmulatorWorkingDirectory = @"D:\MIDAS\CMB\Locale.Emulator.2.3.1.1";
+        private const string LocaleEmulatorWorkingDirectory = @"D:\CMB\Locale.Emulator.2.3.1.1";
         private const string LocaleEmulatorFileName = "LEProc.exe";
-        private const string PersonalBankPortalPath = @"C:\Windows\SysWOW64\PersonalBankPortal.exe";
+        private const string PersonalBankPortalPath = @"C:\Windows\syswow64\PersonalBankPortal.exe";
         private const string ProcessName = "PersonalBankPortal.exe";
+        private const string StatementBaseFolder = @"C:\CMB\Stmt";
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "[TITLE:招商银行个人银行专业版; CLASS:TWealthLoginFrm]";
         private const string MainWindowTitle = "[TITLE:招商银行个人银行专业版; CLASS:TMainFrm]";
@@ -26,9 +28,9 @@ namespace ConsoleApp_ForAutoItTest
         {
             return new FundOutStep[]
             {
-                //DoOpenClientApp,
-                //DoLogIn,
-                //DoTransfer,
+                DoOpenClientApp,
+                DoLogIn,
+                DoTransfer,
                 DoGetBalance,
                 DoLogOut
             };
@@ -253,48 +255,25 @@ namespace ConsoleApp_ForAutoItTest
                 WaitUtils.UntilWinActive("[TITLE:File Download; CLASS:#32770]", "");
                 AutoItX.WinActivate("[TITLE:File Download; CLASS:#32770]", "");
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                AutoItX.ControlClick("[TITLE:File Download; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:2]");
+                AutoItX.ControlClick("[TITLE:File Download; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:2]"); // click Save button
 
                 WaitUtils.UntilWinActive("[TITLE:Save As; CLASS:#32770]", "");
-
-                Thread.Sleep(TimeSpan.FromSeconds(2));
-                AutoItX.WinActivate("[TITLE:Save As; CLASS:#32770]", "");
+                ChangeDownloadPath($@"{StatementBaseFolder}\{context.FromAccountNumber}");
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-
-                IntPtr w = AutoItX.WinGetHandle("[TITLE:Save As; CLASS:#32770]", "");
-                IntPtr c = AutoItX.ControlGetHandle(w, "[CLASS:ToolbarWindow32; INSTANCE:4]");
-
-                Rectangle mainWindowPosition = AutoItX.WinGetPos(w);
-                Rectangle refElementPosition = AutoItX.ControlGetPos(w, c);
-                int startX = mainWindowPosition.X + refElementPosition.X + refElementPosition.Width - 10;
-                int startY = mainWindowPosition.Y + refElementPosition.Y + refElementPosition.Height/2;
-
-                AutoItX.MouseMove(startX + 15, startY + 25);
-                //int a = AutoItX.ControlClick("[TITLE:Save As; CLASS:#32770]", "", "[CLASS:ToolbarWindow32; INSTANCE:4]");
-                AutoItX.MouseClick("LEFT", startX + 15, startY + 25);
-                AutoItX.Send("{BACKSPACE}");
-
-                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(50));
-                AutoItX.Send(@"D:\BBB");
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-                AutoItX.Send("{ENTER}");
-
-                //Thread.Sleep(TimeSpan.FromSeconds(5));
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-                AutoItX.ControlClick("[TITLE:Save As; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:2]");
+                AutoItX.ControlClick("[TITLE:Save As; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:2]"); // click Save button
 
                 int warningHappen1 = AutoItX.WinWaitActive("[TITLE:Confirm Save As; CLASS:#32770]", "", 2);
                 if (warningHappen1 == AutoItXSuccess)
                 {
                     AutoItX.WinActivate("[TITLE:Confirm Save As; CLASS:#32770]", "");
                     Thread.Sleep(TimeSpan.FromSeconds(1));
-                    AutoItX.ControlClick("[TITLE:Confirm Save As; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:1]");
+                    AutoItX.ControlClick("[TITLE:Confirm Save As; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:1]"); // click Yes button
                 }
 
                 WaitUtils.UntilWinActive("[TITLE:Download complete; CLASS:#32770]", "");
                 AutoItX.WinActivate("[TITLE:Download complete; CLASS:#32770]", "");
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                AutoItX.ControlClick("[TITLE:Download complete; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:4]");
+                AutoItX.ControlClick("[TITLE:Download complete; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:4]"); // click Close button
                 
                 Thread.Sleep(TimeSpan.FromSeconds(2));
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
@@ -302,6 +281,35 @@ namespace ConsoleApp_ForAutoItTest
             catch (Exception e)
             {
                 return RobotResult.Build(context, RobotStatus.ERROR, e.Message);
+            }
+        }
+
+        private void ChangeDownloadPath(string targetPath)
+        {
+            if (!Directory.Exists(targetPath))
+            {
+                Directory.CreateDirectory(targetPath);
+            }
+            string currentPath = AutoItX.ControlGetText("[TITLE:Save As; CLASS:#32770]", "", "[CLASS:ToolbarWindow32; INSTANCE:4]");
+            if (!currentPath.Contains(targetPath))
+            {
+                AutoItX.WinActivate("[TITLE:Save As; CLASS:#32770]", "");
+                IntPtr w = AutoItX.WinGetHandle("[TITLE:Save As; CLASS:#32770]", "");
+                IntPtr c = AutoItX.ControlGetHandle(w, "[CLASS:ToolbarWindow32; INSTANCE:4]");
+
+                Rectangle mainWindowPosition = AutoItX.WinGetPos(w);
+                Rectangle refElementPosition = AutoItX.ControlGetPos(w, c);
+                int startX = mainWindowPosition.X + refElementPosition.X + refElementPosition.Width - 10;
+                int startY = mainWindowPosition.Y + refElementPosition.Y + refElementPosition.Height / 2;
+
+                AutoItX.MouseMove(startX + 15, startY + 25);
+                AutoItX.MouseClick("LEFT", startX + 15, startY + 25);
+                AutoItX.Send("{BACKSPACE}");
+
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(50));
+                AutoItX.Send(targetPath);
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                AutoItX.Send("{ENTER}");
             }
         }
 
