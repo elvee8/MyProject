@@ -30,11 +30,12 @@ namespace ConsoleApp_ForAutoItTest
                 if (isUppercase)
                 {
                     _inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.SHIFT);
-                }
-                _inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)wParamChar);
-                if (isUppercase)
-                {
+                    _inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)wParamChar);
                     _inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.SHIFT);
+                }
+                else
+                {
+                    _inputSimulator.Keyboard.KeyPress((WindowsInput.Native.VirtualKeyCode)wParamChar);
                 }
             }
         }
