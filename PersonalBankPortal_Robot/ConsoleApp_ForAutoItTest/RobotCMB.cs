@@ -123,7 +123,6 @@ namespace ConsoleApp_ForAutoItTest
                 }
 
                 WaitUtils.UntilWinActive(MainWindowTitle, MainWindowText);
-                Thread.Sleep(TimeSpan.FromSeconds(3)); // sleep wait for [CLASS:Internet Explorer_Server] load done
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Login Success, Awesome!");
             }
             catch (Exception e)
@@ -138,6 +137,9 @@ namespace ConsoleApp_ForAutoItTest
             {
                 IntPtr mainFormWindow = GetMainFormWindow();
                 AutoItX.WinActivate(mainFormWindow);
+
+                ClickButton(mainFormWindow, 50, 80); // click HomePage button
+                Thread.Sleep(TimeSpan.FromSeconds(3)); // sleep wait for [CLASS:Internet Explorer_Server] load done
 
                 ClickButton(mainFormWindow, 60, 320); // click Transfer button, default 'Same-bank transfer'
                 WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
