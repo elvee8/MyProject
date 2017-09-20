@@ -152,6 +152,8 @@ namespace ConsoleApp_ForAutoItTest
                     WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBStyleRadioButton; INSTANCE:1]");
                     FillInterBankTransInfo(mainFormWindow, context);
                 }
+
+                WaitUtils.UntilControlFocus(MainWindowTitle, MainWindowText, "[CLASS:TCMBEdit; INSTANCE:1]");
                 FillWithdrawPin(mainFormWindow, context);
 
                 int errorHappen1 = AutoItX.WinWaitActive("[TITLE:错误; CLASS:TErrorWithHelpForm]", "", 5); //transfer pre-check failed
@@ -162,11 +164,7 @@ namespace ConsoleApp_ForAutoItTest
                 }
 
                 WaitUtils.UntilWinActive("[CLASS:TTransferSuccessFrm]", context.ToAccountName);
-
-                Thread.Sleep(GetRandomDelay(100));
                 AutoItX.WinClose("[CLASS:TTransferSuccessFrm]");
-                Thread.Sleep(GetRandomDelay(100));
-
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "");
             }
             catch (Exception e)
