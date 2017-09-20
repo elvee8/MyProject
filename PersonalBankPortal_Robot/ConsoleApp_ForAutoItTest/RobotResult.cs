@@ -10,6 +10,8 @@ namespace ConsoleApp_ForAutoItTest
     {
         public RobotContext Context { get; set; }
         public RobotStatus Status { get; set; }
+        public string Balance { get; set; }
+        public string Fee { get; set; }
 
         public static RobotResult Default(RobotContext context)
         {

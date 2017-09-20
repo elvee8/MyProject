@@ -11,9 +11,9 @@ namespace ConsoleApp_ForAutoItTest
     public class RobotCMB
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
-        private const string LocaleEmulatorWorkingDirectory = @"D:\CMB\Locale.Emulator.2.3.1.1";
+        private const string LocaleEmulatorWorkingDirectory = @"D:\MIDAS\CMB\Locale.Emulator.2.3.1.1";
         private const string LocaleEmulatorFileName = "LEProc.exe";
-        private const string PersonalBankPortalPath = @"C:\Windows\syswow64\PersonalBankPortal.exe";
+        private const string PersonalBankPortalPath = @"C:\Windows\SysWOW64\PersonalBankPortal.exe";
         private const string ProcessName = "PersonalBankPortal.exe";
         private const int AutoItXSuccess = 1;
         private const string LoginFormTitle = "[TITLE:招商银行个人银行专业版; CLASS:TWealthLoginFrm]";
@@ -26,9 +26,10 @@ namespace ConsoleApp_ForAutoItTest
         {
             return new FundOutStep[]
             {
-                DoOpenClientApp,
-                DoLogIn,
-                DoTransfer,
+                //DoOpenClientApp,
+                //DoLogIn,
+                //DoTransfer,
+                DoGetBalance,
                 DoLogOut
             };
         }
@@ -232,6 +233,76 @@ namespace ConsoleApp_ForAutoItTest
             EnterWithdrawPinBox(mainFormWindow, textPinBox, context.TokenWithdrawPin);
             ClickButton(mainFormWindow, textPinBox, 70, 50); // click 'Next' button
             Thread.Sleep(GetRandomDelay(1000));
+        }
+
+        private RobotResult DoGetBalance(RobotContext context)
+        {
+            try
+            {
+                IntPtr mainFormWindow = GetMainFormWindow();
+                AutoItX.WinActivate(mainFormWindow);
+
+                ClickButton(mainFormWindow, 50, 80); // click HomePage button
+                Thread.Sleep(TimeSpan.FromSeconds(3)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+
+                ClickButton(mainFormWindow, 230, 480); // click Statement button
+                Thread.Sleep(TimeSpan.FromSeconds(5)); // sleep wait for [CLASS:Internet Explorer_Server] load done
+
+                ClickButton(mainFormWindow, 1580, 390); // click Download button
+
+                WaitUtils.UntilWinActive("[TITLE:File Download; CLASS:#32770]", "");
+                AutoItX.WinActivate("[TITLE:File Download; CLASS:#32770]", "");
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                AutoItX.ControlClick("[TITLE:File Download; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:2]");
+
+                WaitUtils.UntilWinActive("[TITLE:Save As; CLASS:#32770]", "");
+
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+                AutoItX.WinActivate("[TITLE:Save As; CLASS:#32770]", "");
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+
+                IntPtr w = AutoItX.WinGetHandle("[TITLE:Save As; CLASS:#32770]", "");
+                IntPtr c = AutoItX.ControlGetHandle(w, "[CLASS:ToolbarWindow32; INSTANCE:4]");
+
+                Rectangle mainWindowPosition = AutoItX.WinGetPos(w);
+                Rectangle refElementPosition = AutoItX.ControlGetPos(w, c);
+                int startX = mainWindowPosition.X + refElementPosition.X + refElementPosition.Width - 10;
+                int startY = mainWindowPosition.Y + refElementPosition.Y + refElementPosition.Height/2;
+
+                AutoItX.MouseMove(startX + 15, startY + 25);
+                //int a = AutoItX.ControlClick("[TITLE:Save As; CLASS:#32770]", "", "[CLASS:ToolbarWindow32; INSTANCE:4]");
+                AutoItX.MouseClick("LEFT", startX + 15, startY + 25);
+                AutoItX.Send("{BACKSPACE}");
+
+                AutoItX.AutoItSetOption("SendKeyDelay", GetRandomDelay(50));
+                AutoItX.Send(@"D:\BBB");
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                AutoItX.Send("{ENTER}");
+
+                //Thread.Sleep(TimeSpan.FromSeconds(5));
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                AutoItX.ControlClick("[TITLE:Save As; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:2]");
+
+                int warningHappen1 = AutoItX.WinWaitActive("[TITLE:Confirm Save As; CLASS:#32770]", "", 2);
+                if (warningHappen1 == AutoItXSuccess)
+                {
+                    AutoItX.WinActivate("[TITLE:Confirm Save As; CLASS:#32770]", "");
+                    Thread.Sleep(TimeSpan.FromSeconds(1));
+                    AutoItX.ControlClick("[TITLE:Confirm Save As; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:1]");
+                }
+
+                WaitUtils.UntilWinActive("[TITLE:Download complete; CLASS:#32770]", "");
+                AutoItX.WinActivate("[TITLE:Download complete; CLASS:#32770]", "");
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                AutoItX.ControlClick("[TITLE:Download complete; CLASS:#32770]", "", "[CLASS:Button; INSTANCE:4]");
+                
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+                return RobotResult.Build(context, RobotStatus.SUCCESS, "");
+            }
+            catch (Exception e)
+            {
+                return RobotResult.Build(context, RobotStatus.ERROR, e.Message);
+            }
         }
 
         private RobotResult DoLogOut(RobotContext context)
