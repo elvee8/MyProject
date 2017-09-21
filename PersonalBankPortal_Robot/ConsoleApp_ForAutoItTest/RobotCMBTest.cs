@@ -8,12 +8,15 @@ namespace ConsoleApp_ForAutoItTest
         public static void Main1(string[] args)
         {
             Console.WriteLine("---------------------------1234---------------------------");
-
             RobotContext context = new RobotContext();
-            context.FromAccountNumber = "6214832004002670";
             context.FromAccountName = "詹德宏";
+            context.FromAccountNumber = "6214832004002670";
             context.LoginPassword = "aa254172";
             context.TokenWithdrawPin = "452541";
+            //context.FromAccountName = "庄洲荣";
+            //context.FromAccountNumber = "6214835924582826";
+            //context.LoginPassword = "aa038240";
+            //context.TokenWithdrawPin = "360382";
 
             string[] bankNames = { "", "交通银行", "" };
             string[] acctNames = { "吕文斌", "阿拉木斯", "" };

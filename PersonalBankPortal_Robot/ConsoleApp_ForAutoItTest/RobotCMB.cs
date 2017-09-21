@@ -30,7 +30,7 @@ namespace ConsoleApp_ForAutoItTest
             {
                 DoOpenClientApp,
                 DoLogIn,
-                DoTransfer,
+                //DoTransfer,
                 DoGetBalance,
                 DoLogOut
             };
