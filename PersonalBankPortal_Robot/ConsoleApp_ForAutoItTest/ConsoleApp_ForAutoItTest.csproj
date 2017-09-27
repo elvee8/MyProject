@@ -59,6 +59,7 @@
     <Compile Include="RobotCMB738Test.cs" />
     <Compile Include="SendKeyMessage\CatchScreenshot.cs" />
     <Compile Include="RobotCMB738Utils.cs" />
+    <Compile Include="StringExtension.cs" />
     <Compile Include="WaitUtils.cs" />
     <Compile Include="RobotContext.cs" />
     <Compile Include="RobotResult.cs" />
