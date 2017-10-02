@@ -2,6 +2,7 @@
 using System.Threading;
 using WindowsInput;
 using ConsoleApp_ForAutoItTest.SendKeyMessage;
+using System.Diagnostics;
 
 namespace ConsoleApp_ForAutoItTest
 {
@@ -47,6 +48,29 @@ namespace ConsoleApp_ForAutoItTest
             return value * multiplier;
         }
 
-    }
+        public static string EnterKeysByVirtualKeyboard(string text, bool delayBetweenCharacters = false)
+        {
+            Process p = new Process();
+            p.StartInfo.FileName = "cscript";
+            var args = string.Format(@"d:\dsf\Antelope.VirtualKeyboard.wsf ""{0}""", text);
+            Console.WriteLine(args);
+            if (delayBetweenCharacters)
+                args = string.Format(@"{0} """"", args);
+            p.StartInfo.Arguments = args;
+            ////p.StartInfo.CreateNoWindow = true;
+            //p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardInput = true;
+            p.Start();
+            p.WaitForExit();
 
-}
+            string output = p.StandardOutput.ReadToEnd();
+            string err = p.StandardError.ReadToEnd();
+            return output + err;
+        }
+
+        }
+
+    }

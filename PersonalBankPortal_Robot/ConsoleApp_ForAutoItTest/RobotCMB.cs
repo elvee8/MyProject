@@ -12,7 +12,7 @@ namespace ConsoleApp_ForAutoItTest
     public class RobotCMB
     {
         private static readonly Logger LOG = LogManager.GetCurrentClassLogger();
-        private const string LocaleEmulatorWorkingDirectory = @"D:\CMB\Locale.Emulator.2.3.1.1";
+        private const string LocaleEmulatorWorkingDirectory = @"D:\Project\Locale.Emulator.2.3.1.1";
         private const string LocaleEmulatorFileName = "LEProc.exe";
         private const string PersonalBankPortalPath = @"C:\Windows\syswow64\PersonalBankPortal.exe";
         private const string ProcessName = "PersonalBankPortal.exe";
@@ -30,7 +30,7 @@ namespace ConsoleApp_ForAutoItTest
             {
                 DoOpenClientApp,
                 DoLogIn,
-                //DoTransfer,
+                DoTransfer,
                 DoGetBalance,
                 DoLogOut
             };
@@ -79,11 +79,16 @@ namespace ConsoleApp_ForAutoItTest
             {
                 TryToKillOldProcess(context.MidasTransactionId);
 
-                Process process = new Process();
-                process.StartInfo.FileName = LocaleEmulatorFileName;
-                process.StartInfo.WorkingDirectory = LocaleEmulatorWorkingDirectory;
-                process.StartInfo.Arguments = PersonalBankPortalPath;
-                process.Start();
+                
+                SimulateKey.MouseMove(500, 500);
+                SimulateKey.MouseClick(500, 500);
+                SimulateKey.MouseClick(500, 500);
+
+                //Process process = new Process();
+                //process.StartInfo.FileName = LocaleEmulatorFileName;
+                //process.StartInfo.WorkingDirectory = LocaleEmulatorWorkingDirectory;
+                //process.StartInfo.Arguments = PersonalBankPortalPath;
+                //process.Start();
 
                 Thread.Sleep(TimeSpan.FromSeconds(3));
                 return RobotResult.Build(context, RobotStatus.SUCCESS, "Open Client App Success!");
@@ -183,8 +188,22 @@ namespace ConsoleApp_ForAutoItTest
             IntPtr textToAccountName = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:2]");
             EnterTextBox(mainFormWindow, textToAccountName, context.ToAccountName);
 
+
             IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:3]");
-            EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
+
+            Rectangle mainWindowPosition = AutoItX.WinGetPos(mainFormWindow);
+            Rectangle refElementPosition = AutoItX.ControlGetPos(mainFormWindow, textToAccountNumber);
+            int startX = mainWindowPosition.X + refElementPosition.X;
+            int startY = mainWindowPosition.Y + refElementPosition.Y;
+            int elementPossitionX = startX + 20;
+            int elementPossitionY = startY + 20;
+            AutoItX.MouseClick("LEFT" ,elementPossitionX, elementPossitionY);
+
+            
+            InputSimulatorUtils.EnterKeysByVirtualKeyboard(context.ToAccountNumber, true);
+
+            //IntPtr textToAccountNumber = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBStyleEdit; INSTANCE:3]");
+            //EnterTextBox(mainFormWindow, textToAccountNumber, context.ToAccountNumber);
 
             IntPtr searchComboBoxToAccountCity = AutoItX.ControlGetHandle(mainFormWindow, "[CLASS:TCMBSearchComboBox; INSTANCE:1]");
             SearchAndSelectComboBox(mainFormWindow, searchComboBoxToAccountCity, context.ToAccountCity);
@@ -407,7 +426,7 @@ namespace ConsoleApp_ForAutoItTest
         {
             if (AutoItX.ControlFocus(mainWindow, textBox) == AutoItXSuccess)
             {
-                InputSimulatorUtils.KeyIn(value);
+                InputSimulatorUtils.EnterKeysByVirtualKeyboard(value, true);
             }
         }
 

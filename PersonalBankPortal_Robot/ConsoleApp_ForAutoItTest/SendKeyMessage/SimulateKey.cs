@@ -44,6 +44,26 @@ namespace ConsoleApp_ForAutoItTest.SendKeyMessage
             return isSuccess;
         }
 
+        
+        [DllImport("User32.dll",
+                       EntryPoint = "mouse_event",
+                       CallingConvention = CallingConvention.Winapi)]
+        internal static extern void Mouse_Event(int dwFlags,
+                                                    int dx,
+                                                    int dy,
+                                                    int dwData,
+                                                    int dwExtraInfo);
+        public static void MouseMove(int x, int y)
+        {
+            Mouse_Event(0x0001 | 0x8000, x, y, 0, 0);
+        }
+
+        public static void MouseClick(int x, int y)
+        {
+            Mouse_Event(0x0002, x, y, 0, 0);
+            Thread.Sleep(10);
+            Mouse_Event(0x0004, x, y, 0, 0);
+        }
 
         public static void ClearText(IntPtr hw, int length = 20)
         {

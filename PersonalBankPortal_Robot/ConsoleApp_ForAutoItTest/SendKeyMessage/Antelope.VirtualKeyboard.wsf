@@ -1,0 +1,168 @@
+﻿<PACKAGE>
+<JOB id=Antelope.VirtualKeyboard>
+<REFERENCE OBJECT="INPUTKBD.SoftKeyboard"/>
+<REFERENCE OBJECT="SOFTHID.SoftHIDInputKbdMapper"/>
+<REFERENCE OBJECT="SOFTHIDUSBK.SoftHIDProtocolXlator"/>
+<SCRIPT LANGUAGE="VBScript">
+
+Option Explicit
+
+const IID_IDSFBus                = "{E927C266-5364-449E-AE52-D6A782AFDA9C}" 
+const IID_ISoftUSBDevice         = "{9AC61697-81AE-459A-8629-BF5D5A838519}"
+const IID_ISoftHIDProtocolXlator = "{78C6932B-1B53-469F-9DE3-38114BE3B41E}"
+const IID_EHCICtrlrObj           = "{16017C34-A2BA-480B-8DE8-CD08756AD1F8}"
+const IID_ISoftUSBHub            = "{0442B742-2BD3-4B07-99D8-65B6395BCDB0}"
+
+If WScript.Arguments.Count = 0 Then
+	WriteLine "Please pass keys as argument"
+	Wscript.Quit -1
+End If
+
+WriteLine "Antelope.VirtualKeyboard.wsf starting"
+
+Dim SoftKbd
+Set SoftKbd = CreateObject("INPUTKBD.SoftKeyboard")
+
+Dim KbdMapper
+Set KbdMapper = CreateObject("SOFTHID.SoftHIDInputKbdMapper")
+
+'Create the DSF base object
+Dim DSF       : Set DSF = CreateObject("DSF.DSF")
+
+WriteLine "Enumerating simulated devices to find EHCI controller"
+Dim CtrlrDev : Set CtrlrDev = EnumSimulatedDevices(IID_IDSFBus)
+
+If CtrlrDev Is Nothing Then
+    Error "Could not find simulated a EHCI controller. Did you remember to run softehcicfg.exe /install?"
+End If
+
+Dim CtrlrObj : Set CtrlrObj = CtrlrDev.Object(IID_EHCICtrlrObj)
+
+Dim RootHubPorts : Set RootHubPorts = CtrlrObj.Ports
+
+Dim DSFDevExtHub : Set DSFDevExtHub = RootHubPorts(1).Device
+If DSFDevExtHub Is Nothing Then
+    Error "No device connected to port 1 of controller root hub. Did you remember to run cscript Create1.1Kbd.wsf?"
+End If
+
+Dim ExtHub      : Set ExtHub = DSFDevExtHub.Object(IID_ISoftUSBHub)
+Dim ExtHubPorts : Set ExtHubPorts = ExtHub.Ports
+Dim DSFDevProtocolXlator : Set DSFDevProtocolXlator = ExtHubPorts(1).Device
+
+If DSFDevProtocolXlator Is Nothing Then
+    Error "No device connected to port 1 of external hub. Did you remember to run cscript Create1.1Kbd.wsf?"
+End If
+
+Dim ProtocolXlator : Set ProtocolXlator = DSFDevProtocolXlator.Object(IID_ISoftHIDProtocolXlator)
+If ProtocolXlator Is Nothing Then
+    Error "USB HID ProtocolXlator not found in DSFDevice.Object(IID_ISoftHIDProtocolXlator) of device connected to root hub port 1"
+End If
+
+KbdMapper.AttachKbd SoftKbd
+KbdMapper.AttachProtocolXlator ProtocolXlator
+
+WScript.Sleep 500
+
+If WScript.Arguments.Count = 2 Then
+    Dim i
+    For i=1 To Len(WScript.Arguments.Item(0))
+        SoftKbd.PressAndReleaseKeys Mid(WScript.Arguments.Item(0),i,1)
+        WScript.Sleep 300
+    Next
+Else
+    SoftKbd.PressAndReleaseKeys WScript.Arguments.Item(0)
+End If
+
+WScript.Sleep 1000
+
+KbdMapper.AttachKbd Nothing
+KbdMapper.AttachProtocolXlator Nothing
+
+WriteLine "Antelope.VirtualKeyboard.wsf completed"
+WScript.Quit 0
+
+
+'/////////////////////////////////////////////////////////////////////////////
+' Function EnumSimulatedDevices
+'
+' This function searches the collection of simulated devices
+' referenced by DSF.Devices for a device that exposes an ancillary
+' object from DSFDevice.Object with the specified GUID. If found it returns the
+' DSFDevice object otherwise it returns Nothing.
+'/////////////////////////////////////////////////////////////////////////////
+Private Function EnumSimulatedDevices(SearchObjectGUID)
+
+    Dim DevSought : Set DevSought = Nothing
+    Dim Dev       : Set Dev = Nothing
+    Dim ObjSought : Set ObjSought = Nothing
+
+    For Each Dev in DSF.Devices
+        If Dev.HasObject(SearchObjectGUID) Then
+            Set ObjSought = Dev.Object(SearchObjectGUID)
+            If Not ObjSought Is Nothing Then
+                Set DevSought = Dev
+
+                Exit For
+            End If
+        End If
+    Next
+
+    Set EnumSimulatedDevices = DevSought
+
+End Function
+
+
+'/////////////////////////////////////////////////////////////////////////////
+' Sub PromptAndWaitForEnterKey
+'
+' This routine displays the specified text and then waits for the user
+' to press Enter
+'/////////////////////////////////////////////////////////////////////////////
+Private Sub PromptAndWaitForEnterKey(text)
+    Write text
+    Dim x : x = WScript.StdIn.ReadLine()
+End Sub
+
+
+'/////////////////////////////////////////////////////////////////////////////
+' Sub WriteLine
+'
+' This routine writes the specified text to the console followed by a
+' newline.
+'/////////////////////////////////////////////////////////////////////////////
+Private Sub WriteLine(Text)
+
+    WScript.StdOut.WriteLine text
+
+End Sub
+
+
+'/////////////////////////////////////////////////////////////////////////////
+' Sub Write
+'
+' This routine writes the specified text to the console
+'/////////////////////////////////////////////////////////////////////////////
+Private Sub Write(Text)
+
+    WScript.StdOut.Write text
+
+End Sub
+
+
+
+'/////////////////////////////////////////////////////////////////////////////
+' Sub Error
+'
+' This routine writes the specified text to the console and
+' terminates the script
+'/////////////////////////////////////////////////////////////////////////////
+Private Sub Error(msg)
+    WriteLine "Script terminating due to error"
+    WriteLine msg
+    WScript.Quit 1
+End Sub
+
+
+</SCRIPT>
+</JOB>
+</PACKAGE>
