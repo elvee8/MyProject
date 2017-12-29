@@ -1,0 +1,13 @@
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\FormSMSMultipleInstance.exe.config
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\FormSMSMultipleInstance.exe
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\FormSMSMultipleInstance.pdb
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\GSMCommShared.dll
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\GSMCommunication.dll
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\PDUConverter.dll
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\RS232.dll
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.Main.resources
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.Properties.Resources.resources
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.csproj.GenerateResource.Cache
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.csproj.CoreCompileInputs.cache
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.exe
+C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.pdb
