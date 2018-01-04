@@ -58,6 +58,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InputBox.cs" />
+    <Compile Include="Device.cs" />
     <Compile Include="SMSContext.cs" />
     <Compile Include="ModemConfig.cs" />
     <Compile Include="Program.cs" />

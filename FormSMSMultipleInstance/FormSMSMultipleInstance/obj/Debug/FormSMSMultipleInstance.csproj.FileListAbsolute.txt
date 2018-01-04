@@ -11,3 +11,13 @@ C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\ob
 C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.csproj.CoreCompileInputs.cache
 C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.exe
 C:\Users\lhunnel\source\repos\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.pdb
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\FormSMSMultipleInstance.exe.config
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\FormSMSMultipleInstance.exe
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\bin\Debug\FormSMSMultipleInstance.pdb
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.csprojResolveAssemblyReference.cache
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.Main.resources
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.Properties.Resources.resources
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.csproj.GenerateResource.Cache
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.csproj.CoreCompileInputs.cache
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.exe
+D:\Projects\MyProject\FormSMSMultipleInstance\FormSMSMultipleInstance\obj\Debug\FormSMSMultipleInstance.pdb
