@@ -37,12 +37,13 @@
             this.BtnUpdate = new System.Windows.Forms.Button();
             this.btnRefresh = new System.Windows.Forms.Button();
             this.lblDevicesCount = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.grdDevices)).BeginInit();
             this.SuspendLayout();
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(12, 433);
+            this.btnConnect.Location = new System.Drawing.Point(12, 455);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(124, 23);
             this.btnConnect.TabIndex = 3;
@@ -52,7 +53,7 @@
             // 
             // btnDisconnect
             // 
-            this.btnDisconnect.Location = new System.Drawing.Point(144, 433);
+            this.btnDisconnect.Location = new System.Drawing.Point(144, 455);
             this.btnDisconnect.Name = "btnDisconnect";
             this.btnDisconnect.Size = new System.Drawing.Size(124, 23);
             this.btnDisconnect.TabIndex = 5;
@@ -71,7 +72,7 @@
             // 
             // btnUpdateNumber
             // 
-            this.btnUpdateNumber.Location = new System.Drawing.Point(12, 462);
+            this.btnUpdateNumber.Location = new System.Drawing.Point(12, 484);
             this.btnUpdateNumber.Name = "btnUpdateNumber";
             this.btnUpdateNumber.Size = new System.Drawing.Size(256, 23);
             this.btnUpdateNumber.TabIndex = 11;
@@ -145,11 +146,21 @@
             this.lblDevicesCount.Size = new System.Drawing.Size(0, 13);
             this.lblDevicesCount.TabIndex = 16;
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(11, 434);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(155, 13);
+            this.label2.TabIndex = 17;
+            this.label2.Text = "* Contact is temporary updated.";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(281, 506);
+            this.ClientSize = new System.Drawing.Size(281, 522);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.lblDevicesCount);
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.BtnUpdateAll);
@@ -180,5 +191,6 @@
         private System.Windows.Forms.Button BtnUpdate;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Label lblDevicesCount;
+        private System.Windows.Forms.Label label2;
     }
 }

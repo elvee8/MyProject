@@ -16,11 +16,6 @@ namespace FormSMSMultipleInstance
 
         private string _ownNumber;
 
-        //public string GetOwnNumber()
-        //{
-        //    return ownNumber;
-        //}
-
         public void SetOwnNumber(string value)
         {
             _ownNumber = value;
@@ -34,8 +29,8 @@ namespace FormSMSMultipleInstance
             OGsmModem = new GsmCommMain(Modem.Port, Modem.BaudRate, Modem.Timeout);
             OGsmModem.Open();
             OGsmModem.EnableMessageNotifications();
-            GetOwnNumber();
-            ////OGsmModem.PhoneConnected += new EventHandler(comm_PhoneConnected);
+            
+            //OGsmModem.PhoneConnected += new EventHandler(comm_PhoneConnected);
             //OGsmModem.MessageReceived += new MessageReceivedEventHandler(comm_MessageReceived);
         }
 
@@ -51,28 +46,71 @@ namespace FormSMSMultipleInstance
 
         public string GetOwnNumber()
         {
-            if (_ownNumber != null) return _ownNumber;
+            try
+            {
+                var contactOwnNumber = string.Empty;
+                if (_ownNumber != null) return _ownNumber;
 
-            //var ownContactDetails = OGsmModem.GetPhonebook(PhoneStorageType.Sim).FirstOrDefault();
-            
-            var contactList = OGsmModem.GetPhonebook(PhoneStorageType.Sim);
-            var contactOwnNumber = contactList.FirstOrDefault(c => c.Text.Contains("Own"));
+                var ownContactDetails = OGsmModem.GetPhonebook(PhoneStorageType.Sim).FirstOrDefault();
 
-            SetOwnNumber(contactOwnNumber == null ? "No Own Contact, Please Update!" : contactOwnNumber.Number);
+                var contactList = OGsmModem.GetPhonebook(PhoneStorageType.Sim);
+                var contact = contactList?.FirstOrDefault(c => c.Text.Contains("Own"));
+                if (contact != null)
+                {
+                    contactOwnNumber = contact.Number;
+                }
 
-            //SetOwnNumber(ownContactDetails.Number.Split(',')[0].Replace("\"", ""));
+                if (contactOwnNumber == string.Empty && ownContactDetails != null)
+                {
+                    contactOwnNumber = ownContactDetails.Number.Split(',')[0].Replace("\"", "");
+                }
 
+                SetOwnNumber(contactOwnNumber == string.Empty? "No Own Contact, Please Update!": contactOwnNumber);
+            }
+            catch 
+            {
+                //do nothing
+            }
             return _ownNumber;
         }
 
-        public void UpdateOwnContact(string OwnContact)
+        public bool UpdateOwnContact(string ownContact)
         {
-            var ownContactDetails = OGsmModem.GetPhonebook(PhoneStorageType.Sim).FirstOrDefault();
-            OGsmModem.DeleteAllPhonebookEntries(SimStorage);
-            var ownContact = new PhonebookEntry(1, OwnContact, 145, "Own");           
+            var issuccess = false;
+            try
+            {
+                var isUpdated = TryUpdateContact(ownContact);
+                if (isUpdated)
+                {
+                    OGsmModem.DeleteAllPhonebookEntries(SimStorage);
+                    issuccess = TryUpdateContact(ownContact);
+                }
 
-            OGsmModem.CreatePhonebookEntry(ownContact, SimStorage);            
+            }
+            catch
+            {
+                //do nothing
+            }
+            return issuccess;
+        }
 
+        private bool TryUpdateContact(string Contact)
+        {
+            var issuccess = false;
+
+            try
+            {
+                var ownContact = new PhonebookEntry(1, Contact, 145, "Own");
+                OGsmModem.CreatePhonebookEntry(ownContact, SimStorage);
+
+                issuccess = true;
+            }
+            catch
+            {
+                //do nothing
+            }
+
+            return issuccess;
         }
 
         public List<SMSContext> ReadMessageUnread()

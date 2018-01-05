@@ -1,31 +1,37 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace FormSMSMultipleInstance
 {
-    class InputBox
+    internal class InputBox
     {
+        private static TextBox _textBox = new TextBox();
+
         public static DialogResult ShowInputDialog(ref string input)
         {
-            Size size = new Size(200, 70);
-            Form inputBox = new Form
+            var size = new Size(200, 70);
+            var inputBox = new Form
             {
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 ClientSize = size,
                 StartPosition = FormStartPosition.CenterScreen,
                 MaximizeBox = false,
-                Text = "Enter New Number"
+                TopMost = true,
+            Text = "Enter New Number"
             };
 
-            TextBox textBox = new TextBox
+            _textBox = new TextBox
             {
                 Size = new Size(size.Width - 10, 23),
                 Location = new Point(5, 5),
                 Text = input
             };
-            inputBox.Controls.Add(textBox);
+            inputBox.Controls.Add(_textBox);
 
-            Button okButton = new Button
+            _textBox.TextChanged += textBox_TextChanged;
+
+            var okButton = new Button
             {
                 DialogResult = DialogResult.OK,
                 Name = "okButton",
@@ -37,15 +43,26 @@ namespace FormSMSMultipleInstance
 
             inputBox.AcceptButton = okButton;
 
-            DialogResult result = inputBox.ShowDialog();
+            var result = inputBox.ShowDialog();
 
             if (result == DialogResult.OK)
             {
-                input = textBox.Text;
+                input = _textBox.Text;
             }
 
             return result;
         }
 
+        private static void textBox_TextChanged(object sender, EventArgs e)
+        {
+            var originalText = _textBox.Text.ToCharArray();
+            foreach (var c in originalText)
+            {
+                if (!(char.IsNumber(c)))
+                {
+                    _textBox.Text = _textBox.Text.Remove(_textBox.Text.IndexOf(c));
+                }
+            }
+        }
     }
 }

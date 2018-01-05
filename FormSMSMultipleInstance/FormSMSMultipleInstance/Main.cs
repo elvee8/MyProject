@@ -173,10 +173,16 @@ namespace FormSMSMultipleInstance
 
             try
             {
-                DeviceList[index].Status = "Connecting...";
-                RefreshGridView();
                 var deviceName = grdDevices.Rows[index].Cells[0].Value.ToString();
                 var portNumber = GetPortNumber(deviceName);
+
+                var selectedDevice = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == portNumber);
+
+                if (selectedDevice != null && selectedDevice.OGsmModem.IsConnected()) return;
+
+                DeviceList[index].Status = "Connecting...";
+                RefreshGridView();
+
                 var modem = new ModemConfig
                 {
                     Port = portNumber,
@@ -216,19 +222,24 @@ namespace FormSMSMultipleInstance
             try
             {
                 var modemNewSms = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == ((GsmCommMain)sender).PortNumber);
-
-                if (modemNewSms == null) return;
-                var messages = modemNewSms.ReadMessageUnread();
-
-                foreach (var sms in messages)
-                {
-                    MessageBox.Show($@"Device {modemNewSms.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}",modemNewSms.GetOwnNumber());
-                    modemNewSms.DeleteMessage(sms.Index);
-                }
+                
+                Task.Factory.StartNew(() => ReadMessages(modemNewSms));
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.Message);
+            }
+        }
+
+        private static void ReadMessages(SmsModem device)
+        {
+            if (device == null) return;
+            var messages = device.ReadMessageUnread();
+
+            foreach (var sms in messages)
+            {
+                MessageBox.Show($@"Device {device.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}", device.GetOwnNumber());
+                device.DeleteMessage(sms.Index);
             }
         }
 
@@ -241,9 +252,11 @@ namespace FormSMSMultipleInstance
 
                 var selectedDevice = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == portNumber);
 
+                if (selectedDevice == null) return;
                 if (!DisconnectDevice(selectedDevice)) continue;
 
-                DeviceList[selected.Index].Status = "";
+                DeviceList[selected.Index].Status = "Ready to Connect";
+                DeviceList[selected.Index].DeviceNumber = string.Empty;
                 grdDevices.Refresh();
                 RefreshButton();
             }
@@ -277,7 +290,6 @@ namespace FormSMSMultipleInstance
         
         private void BtnUpdateNumber_Click(object sender, EventArgs e)
         {
-
             Task.Factory.StartNew(UpdateContacNumber);
         }
 
@@ -291,11 +303,16 @@ namespace FormSMSMultipleInstance
             var selectedDevice = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == portNumber);
             InputBox.ShowInputDialog(ref newContact);
 
-            if (selectedDevice != null)
+            if (selectedDevice != null && newContact != string.Empty)
             {
-                selectedDevice.SetOwnNumber(newContact);
 
-                selectedDevice.UpdateOwnContact(newContact);
+                DeviceList[index].DeviceNumber = "Updating..";
+
+                RefreshGridView();
+
+                newContact = selectedDevice.UpdateOwnContact(newContact) ? newContact : "* " + newContact;
+
+                selectedDevice.SetOwnNumber(newContact);
 
                 DeviceList[index].DeviceNumber = selectedDevice.GetOwnNumber();
             }
@@ -363,12 +380,27 @@ namespace FormSMSMultipleInstance
 
         private void grdDevices_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
+            var index = grdDevices.SelectedRows[0].Index;
+            var deviceName = grdDevices.Rows[index].Cells[0].Value.ToString();
+            var portNumber = GetPortNumber(deviceName);
 
+            var selectedDevice = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == portNumber);
+
+            if (selectedDevice == null)
+            {
+                Task.Factory.StartNew(() => ConnectDevice(index));
+                return;
+            }
+
+            if (!DisconnectDevice(selectedDevice)) return;
+
+            DeviceList[index].Status = "";
+            grdDevices.Refresh();
+            RefreshButton();
         }
 
         private void grdDevices_SelectionChanged(object sender, EventArgs e)
         {
-
             RefreshButton();
         }
 
@@ -384,6 +416,7 @@ namespace FormSMSMultipleInstance
             try
             {
                 //var selectedRow = (DataGridView)sender;
+                var NumberOfSelectedDevice = grdDevices.SelectedRows.Count;
 
                 var deviceName = grdDevices.SelectedRows[0].Cells[0].Value.ToString();
                 var portNumber = GetPortNumber(deviceName);
@@ -401,6 +434,8 @@ namespace FormSMSMultipleInstance
                     btnUpdateNumber.Enabled = false;
                     btnDisconnect.Enabled = false;
                 }
+
+                btnUpdateNumber.Enabled = btnUpdateNumber.Enabled && NumberOfSelectedDevice == 1;
             }
             catch
             {
