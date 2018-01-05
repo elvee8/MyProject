@@ -394,7 +394,8 @@ namespace FormSMSMultipleInstance
 
             if (!DisconnectDevice(selectedDevice)) return;
 
-            DeviceList[index].Status = "";
+            DeviceList[index].Status = "Ready to Connect";
+            DeviceList[index].DeviceNumber = string.Empty;
             grdDevices.Refresh();
             RefreshButton();
         }
