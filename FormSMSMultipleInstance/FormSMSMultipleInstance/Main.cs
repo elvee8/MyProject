@@ -223,7 +223,10 @@ namespace FormSMSMultipleInstance
             {
                 var modemNewSms = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == ((GsmCommMain)sender).PortNumber);
                 
-                Task.Factory.StartNew(() => ReadMessages(modemNewSms));
+                Task.Factory.StartNew(() =>
+                {
+                    if (modemNewSms != null) ReadUnreadMessages(modemNewSms);
+                });
             }
             catch (Exception error)
             {
@@ -231,7 +234,7 @@ namespace FormSMSMultipleInstance
             }
         }
 
-        private static void ReadMessages(SmsModem device)
+        private static void ReadUnreadMessages(SmsModem device)
         {
             if (device == null) return;
             var messages = device.ReadMessageUnread();
@@ -370,6 +373,7 @@ namespace FormSMSMultipleInstance
                     DeviceList[index].Status = "N/A";
                     RefreshGridView();
                 }
+
             }
             catch (Exception ex)
             {
@@ -447,6 +451,38 @@ namespace FormSMSMultipleInstance
         private void grdDevices_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
 
+        }
+
+        private void btnRead_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow selected in grdDevices.SelectedRows)
+            {
+                Task.Factory.StartNew(() => ReadMessage(selected.Index));
+            }
+        }
+
+        private void ReadMessage(int index)
+        {
+            try
+            {
+                var deviceName = grdDevices.Rows[index].Cells[0].Value.ToString();
+                var portNumber = GetPortNumber(deviceName);
+                var selectedDevice = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == portNumber);
+
+                if (selectedDevice == null) return;
+
+                var allmessaged = selectedDevice.ReadAllMessage();
+
+                foreach (var sms in allmessaged)
+                {
+                    MessageBox.Show($@"Device {selectedDevice.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}", selectedDevice.GetOwnNumber());
+                    selectedDevice.DeleteMessage(sms.Index);
+                }
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
         }
     }
 }

@@ -36,9 +36,18 @@ namespace FormSMSMultipleInstance
 
         public bool TryConnectModem()
         {
+            var isAvailable = false;
             OGsmModem = new GsmCommMain(Modem.Port, Modem.BaudRate, Modem.Timeout); 
             OGsmModem.Open();
-            var isAvailable = OGsmModem.IsConnected();
+            try
+            {
+                OGsmModem.EnableMessageNotifications();
+                isAvailable = OGsmModem.IsConnected();
+            }
+            catch
+            {
+                //do nothing
+            }
             OGsmModem.Close();
 
             return isAvailable;
@@ -116,6 +125,14 @@ namespace FormSMSMultipleInstance
         public List<SMSContext> ReadMessageUnread()
         {
             var simSms = OGsmModem.ReadMessages(PhoneMessageStatus.ReceivedUnread, SimStorage);
+
+            return simSms.Select(sms => ShowMessage(sms.Data, sms.Index)).ToList();
+        }
+
+
+        public List<SMSContext> ReadAllMessage()
+        {
+            var simSms = OGsmModem.ReadMessages(PhoneMessageStatus.All, SimStorage);
 
             return simSms.Select(sms => ShowMessage(sms.Data, sms.Index)).ToList();
         }
