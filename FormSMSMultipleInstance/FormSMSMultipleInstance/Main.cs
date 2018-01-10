@@ -1,6 +1,7 @@
 ﻿using GsmComm.GsmCommunication;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
@@ -14,6 +15,9 @@ namespace FormSMSMultipleInstance
         public List<Device> DeviceList = new List<Device>();
         public static List<SmsModem> ConnectedDevices = new List<SmsModem>();
         public string RgxInt = "\\d+((.|,)\\d+)?";
+
+        public static string MessageSentToService = ConfigurationManager.AppSettings["Message_Send_Service"];
+        public static string MessageShow = ConfigurationManager.AppSettings["Message_Show"];
         
         public Main()
         {
@@ -202,7 +206,6 @@ namespace FormSMSMultipleInstance
 
                 DeviceList[index].Status = "Connected";
                 DeviceList[index].DeviceNumber = device.GetOwnNumber();
-
                 RefreshGridView();
 
             }
@@ -241,7 +244,19 @@ namespace FormSMSMultipleInstance
 
             foreach (var sms in messages)
             {
-                MessageBox.Show($@"Device {device.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}", device.GetOwnNumber());
+                bool.TryParse(MessageSentToService, out bool sendtoservice);
+                bool.TryParse(MessageShow, out bool messageshow);
+
+                if (sendtoservice)
+                {
+                    SmsPostClient.PostSms(sms);
+                }
+
+                if (messageshow)
+                {
+                    MessageBox.Show($@"Device {device.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}", device.GetOwnNumber());
+                }
+                
                 device.DeleteMessage(sms.Index);
             }
         }

@@ -99,7 +99,6 @@
             this.grdDevices.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.grdDevices.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.grdDevices.ShowCellErrors = false;
-            this.grdDevices.ShowCellToolTips = false;
             this.grdDevices.ShowEditingIcon = false;
             this.grdDevices.ShowRowErrors = false;
             this.grdDevices.Size = new System.Drawing.Size(252, 363);
@@ -170,6 +169,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnDisconnect);
             this.Controls.Add(this.btnConnect);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

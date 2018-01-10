@@ -137,7 +137,7 @@ namespace FormSMSMultipleInstance
             return simSms.Select(sms => ShowMessage(sms.Data, sms.Index)).ToList();
         }
 
-        private static SMSContext ShowMessage(SmsPdu pdu, int index)
+        private SMSContext ShowMessage(SmsPdu pdu, int index)
         {
             var smsDeliverPdu = (SmsDeliverPdu)pdu;
 
@@ -147,6 +147,7 @@ namespace FormSMSMultipleInstance
                 Sender = smsDeliverPdu.SmscAddress,
                 Message = smsDeliverPdu.UserDataText,
                 Datetime = smsDeliverPdu.SCTimestamp.ToString(),
+                Reciever = _ownNumber
             };
 
             return sms;
