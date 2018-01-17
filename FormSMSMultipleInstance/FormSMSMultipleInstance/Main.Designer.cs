@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btnConnect = new System.Windows.Forms.Button();
             this.btnDisconnect = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -38,7 +39,14 @@
             this.btnRefresh = new System.Windows.Forms.Button();
             this.lblDevicesCount = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.deviceBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.smsModemBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.portDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.deviceNumberDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.grdDevices)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.deviceBindingSource)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.smsModemBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnConnect
@@ -82,16 +90,20 @@
             // 
             // grdDevices
             // 
-            this.grdDevices.AllowUserToAddRows = false;
             this.grdDevices.AllowUserToDeleteRows = false;
             this.grdDevices.AllowUserToResizeColumns = false;
-            this.grdDevices.AllowUserToResizeRows = false;
+            this.grdDevices.AutoGenerateColumns = false;
             this.grdDevices.BackgroundColor = System.Drawing.SystemColors.Control;
             this.grdDevices.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.grdDevices.CausesValidation = false;
             this.grdDevices.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.grdDevices.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.grdDevices.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.portDataGridViewTextBoxColumn,
+            this.statusDataGridViewTextBoxColumn,
+            this.deviceNumberDataGridViewTextBoxColumn});
             this.grdDevices.Cursor = System.Windows.Forms.Cursors.Default;
+            this.grdDevices.DataSource = this.deviceBindingSource;
             this.grdDevices.Location = new System.Drawing.Point(15, 64);
             this.grdDevices.Name = "grdDevices";
             this.grdDevices.ReadOnly = true;
@@ -154,6 +166,37 @@
             this.label2.TabIndex = 17;
             this.label2.Text = "* Contact is temporary updated.";
             // 
+            // deviceBindingSource
+            // 
+            this.deviceBindingSource.DataSource = typeof(FormSMSMultipleInstance.Device);
+            // 
+            // smsModemBindingSource
+            // 
+            this.smsModemBindingSource.DataSource = typeof(FormSMSMultipleInstance.SmsModem);
+            // 
+            // portDataGridViewTextBoxColumn
+            // 
+            this.portDataGridViewTextBoxColumn.DataPropertyName = "Port";
+            this.portDataGridViewTextBoxColumn.HeaderText = "Port";
+            this.portDataGridViewTextBoxColumn.Name = "portDataGridViewTextBoxColumn";
+            this.portDataGridViewTextBoxColumn.ReadOnly = true;
+            this.portDataGridViewTextBoxColumn.Width = 50;
+            // 
+            // statusDataGridViewTextBoxColumn
+            // 
+            this.statusDataGridViewTextBoxColumn.DataPropertyName = "Status";
+            this.statusDataGridViewTextBoxColumn.HeaderText = "Status";
+            this.statusDataGridViewTextBoxColumn.Name = "statusDataGridViewTextBoxColumn";
+            this.statusDataGridViewTextBoxColumn.ReadOnly = true;
+            this.statusDataGridViewTextBoxColumn.Width = 80;
+            // 
+            // deviceNumberDataGridViewTextBoxColumn
+            // 
+            this.deviceNumberDataGridViewTextBoxColumn.DataPropertyName = "DeviceNumber";
+            this.deviceNumberDataGridViewTextBoxColumn.HeaderText = "DeviceNumber";
+            this.deviceNumberDataGridViewTextBoxColumn.Name = "deviceNumberDataGridViewTextBoxColumn";
+            this.deviceNumberDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -176,6 +219,8 @@
             this.Text = "SMS Reciever";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.grdDevices)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.deviceBindingSource)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.smsModemBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -192,5 +237,10 @@
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Label lblDevicesCount;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.BindingSource smsModemBindingSource;
+        private System.Windows.Forms.BindingSource deviceBindingSource;
+        private System.Windows.Forms.DataGridViewTextBoxColumn portDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn statusDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn deviceNumberDataGridViewTextBoxColumn;
     }
 }

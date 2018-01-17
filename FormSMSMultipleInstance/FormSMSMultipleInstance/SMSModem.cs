@@ -1,35 +1,41 @@
-﻿using System;
-using System.Linq;
-using GsmComm.GsmCommunication;
+﻿using GsmComm.GsmCommunication;
 using GsmComm.PduConverter;
-using System.Collections.Generic;
 using Microsoft.Win32.SafeHandles;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace FormSMSMultipleInstance
 {
     public class SmsModem : IDisposable
     {
-        public ModemConfig Modem { get; set; }
-        public GsmCommMain OGsmModem { get; private set; }
-        public string SimStorage = PhoneStorageType.Sim;
+        private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
+
+        private bool _disposed;
 
         private string _ownNumber;
+        public string SimStorage = PhoneStorageType.Sim;
+        public ModemConfig Modem { get; set; }
+        public GsmCommMain OGsmModem { get; private set; }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         public void SetOwnNumber(string value)
         {
             _ownNumber = value;
         }
 
-        bool _disposed;
-        readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
-
         public void ConnectModem()
         {
             OGsmModem = new GsmCommMain(Modem.Port, Modem.BaudRate, Modem.Timeout);
             OGsmModem.Open();
             OGsmModem.EnableMessageNotifications();
-            
+
             //OGsmModem.PhoneConnected += new EventHandler(comm_PhoneConnected);
             //OGsmModem.MessageReceived += new MessageReceivedEventHandler(comm_MessageReceived);
         }
@@ -37,7 +43,7 @@ namespace FormSMSMultipleInstance
         public bool TryConnectModem()
         {
             var isAvailable = false;
-            OGsmModem = new GsmCommMain(Modem.Port, Modem.BaudRate, Modem.Timeout); 
+            OGsmModem = new GsmCommMain(Modem.Port, Modem.BaudRate, Modem.Timeout);
             OGsmModem.Open();
             try
             {
@@ -46,7 +52,7 @@ namespace FormSMSMultipleInstance
             }
             catch
             {
-                //do nothing
+                //do nothing throw error phone is not connected
             }
             OGsmModem.Close();
 
@@ -65,18 +71,14 @@ namespace FormSMSMultipleInstance
                 var contactList = OGsmModem.GetPhonebook(PhoneStorageType.Sim);
                 var contact = contactList?.FirstOrDefault(c => c.Text.Contains("Own"));
                 if (contact != null)
-                {
                     contactOwnNumber = contact.Number;
-                }
 
                 if (contactOwnNumber == string.Empty && ownContactDetails != null)
-                {
                     contactOwnNumber = ownContactDetails.Number.Split(',')[0].Replace("\"", "");
-                }
 
-                SetOwnNumber(contactOwnNumber == string.Empty? "No Own Contact, Please Update!": contactOwnNumber);
+                SetOwnNumber(contactOwnNumber == string.Empty ? "No Own Contact, Please Update!" : contactOwnNumber);
             }
-            catch 
+            catch
             {
                 //do nothing
             }
@@ -94,7 +96,6 @@ namespace FormSMSMultipleInstance
                     OGsmModem.DeleteAllPhonebookEntries(SimStorage);
                     issuccess = TryUpdateContact(ownContact);
                 }
-
             }
             catch
             {
@@ -139,9 +140,9 @@ namespace FormSMSMultipleInstance
 
         private SMSContext ShowMessage(SmsPdu pdu, int index)
         {
-            var smsDeliverPdu = (SmsDeliverPdu)pdu;
+            var smsDeliverPdu = (SmsDeliverPdu) pdu;
 
-            var sms = new SMSContext()
+            var sms = new SMSContext
             {
                 Index = index,
                 Sender = smsDeliverPdu.SmscAddress,
@@ -165,17 +166,9 @@ namespace FormSMSMultipleInstance
 
         public void TryDisconnect()
         {
-            if (OGsmModem != null && OGsmModem.IsOpen())
-            {
-                OGsmModem.Close();
-                Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (OGsmModem == null || !OGsmModem.IsOpen()) return;
+            OGsmModem.Close();
+            Dispose();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -184,37 +177,35 @@ namespace FormSMSMultipleInstance
                 return;
 
             if (disposing)
-            {
                 _handle.Dispose();
-            }
 
             _disposed = true;
         }
-
-        //private void Comm_MessageReceived(object sender, MessageReceivedEventArgs e)
-        //{
+        //    {
         //    try
-        //    {
-        //        var messages = OGsmModem.ReadMessages(PhoneMessageStatus.ReceivedUnread, SimStorage);
-
-        //        foreach (var message in messages)
-        //        {
-        //            // error on thread disregard
-        //            ShowMessage(message.Data, message.Index);
-
-        //        }
-
-        //    }
-        //    catch (Exception error)
-        //    {
-        //        //MessageBox.Show(error.Message);
-        //    }
-        //}
+        //{
 
         //private void CheckMessage()
-        //{
-        //    try
+        //}
+        //    }
+        //        //MessageBox.Show(error.Message);
         //    {
+        //    catch (Exception error)
+
+        //    }
+
+        //        }
+        //            ShowMessage(message.Data, message.Index);
+        //            // error on thread disregard
+        //        {
+
+        //        foreach (var message in messages)
+        //        var messages = OGsmModem.ReadMessages(PhoneMessageStatus.ReceivedUnread, SimStorage);
+        //    {
+        //    try
+        //{
+
+        //private void Comm_MessageReceived(object sender, MessageReceivedEventArgs e)
         //        var SimSMS = OGsmModem.ReadMessages(PhoneMessageStatus.All, SimStorage);
 
         //        foreach (var message in SimSMS)
@@ -277,6 +268,5 @@ namespace FormSMSMultipleInstance
         //{
         //    //throw new NotImplementedException();
         //}
-
     }
 }

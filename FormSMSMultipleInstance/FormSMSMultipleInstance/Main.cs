@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
+using System.Security.Permissions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,23 +14,24 @@ namespace FormSMSMultipleInstance
 {
     public partial class Main : Form
     {
-        public List<Device> DeviceList = new List<Device>();
         public static List<SmsModem> ConnectedDevices = new List<SmsModem>();
-        public string RgxInt = "\\d+((.|,)\\d+)?";
 
         public static string MessageSentToService = ConfigurationManager.AppSettings["Message_Send_Service"];
         public static string MessageShow = ConfigurationManager.AppSettings["Message_Show"];
-        
+        public List<Device> DeviceList = new List<Device>();
+        public bool IsUpdatingDevice;
+        public string RgxInt = "\\d+((.|,)\\d+)?";
+
         public Main()
         {
             InitializeComponent();
             UpdateListDeviceList();
         }
 
-        [System.Security.Permissions.PermissionSet(System.Security.Permissions.SecurityAction.Demand, Name = "FullTrust")]
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         protected override void WndProc(ref Message m)
         {
-            //Windows Message
+            //Windows Message Device is updated
             if (m.Msg == 537)
                 UpdateListDeviceList();
 
@@ -42,9 +45,10 @@ namespace FormSMSMultipleInstance
 
         private void UpdateListDeviceList()
         {
+            if (IsUpdatingDevice) return;
+
             try
             {
-                //lstAvailableDevice.Items.Clear();
                 DeviceList.Clear();
 
                 var task = Task.Factory.StartNew(UpdateDeviceList);
@@ -53,10 +57,8 @@ namespace FormSMSMultipleInstance
                 RemoveNotExitingDevice();
 
                 if (DeviceList.Count != 0)
-                {
                     foreach (var device in DeviceList.Distinct().ToArray())
                     {
-                        //var isConnected = false;
                         var portNumber = GetPortNumber(device.Port);
                         var selectedDevice = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == portNumber);
 
@@ -74,13 +76,8 @@ namespace FormSMSMultipleInstance
                             RefreshGridView();
                         }
                     }
-                }
-
+                grdDevices.DataSource = null;
                 grdDevices.DataSource = DeviceList;
-
-                grdDevices.Columns[0].Width = 50;
-                grdDevices.Columns[1].Width = 80;
-                grdDevices.Columns[2].Width = 100;
 
                 RefreshGridView();
                 RefreshButton();
@@ -93,28 +90,48 @@ namespace FormSMSMultipleInstance
 
         private void RemoveNotExitingDevice()
         {
-            var notExistDevice = ConnectedDevices.Where(c => !DeviceList.Exists(b => c.Modem.Port == GetPortNumber(b.Port)));
+            var notExistDevice =
+                ConnectedDevices.Where(c => !DeviceList.Exists(b => c.Modem.Port == GetPortNumber(b.Port)));
 
             foreach (var device in notExistDevice)
-            {
                 device.TryDisconnect();
-            }
 
             ConnectedDevices.RemoveAll(c => !DeviceList.Exists(b => c.Modem.Port == GetPortNumber(b.Port)));
         }
 
-        private void UpdateDeviceList()
+        private static void ExecuteBatchFileDriver()
         {
             try
             {
+                using (var process = new Process())
+                {
+                    process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    process.StartInfo.FileName = "SwitchBatch.bat";
+                    process.Start();
+                    process.WaitForExit();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void UpdateDeviceList()
+        {
+            IsUpdatingDevice = true;
+
+            try
+            {
                 var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity");
-                //ERROR ON THIS IF SAME THREAD
                 var deviceList = searcher.Get();
                 foreach (var device in deviceList)
-                {
                     try
                     {
                         var deviceName = device["Name"].ToString();
+
+                        if (deviceName.Contains("USBModem Disk"))
+                            ExecuteBatchFileDriver();
 
                         if (!deviceName.Contains("UART") && !deviceName.Contains("Application")) continue;
 
@@ -122,23 +139,22 @@ namespace FormSMSMultipleInstance
                         var arr = deviceName.ToCharArray();
                         var str = "COM" + arr[i + 3];
                         if (arr[i + 4] != ')')
-                        {
                             str += arr[i + 4];
-                        }
 
                         //UPDATE LIST OF MODEM
                         DeviceList.Add(new Device(str));
                     }
                     catch
                     {
-                        //do noting
+                        //do noting sometime throw error on device name
                     }
-                }
             }
-            catch 
+            catch
             {
-                //do noting
+                //do noting sometimes throw error fetch device list
             }
+
+            IsUpdatingDevice = false;
         }
 
         private int GetPortNumber(string portName)
@@ -154,23 +170,22 @@ namespace FormSMSMultipleInstance
         private void BtnConnect_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow selected in grdDevices.SelectedRows)
-            {
                 Task.Factory.StartNew(() => ConnectDevice(selected.Index));
-            }
         }
 
         private void RefreshGridView()
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)RefreshGridView);
+                Invoke((MethodInvoker) RefreshGridView);
                 return;
             }
             lblDevicesCount.Text = DeviceList.Count.ToString();
             grdDevices.Enabled = DeviceList.Count != 0;
+
             grdDevices.Refresh();
         }
-        
+
         private void ConnectDevice(int index)
         {
             var device = new SmsModem();
@@ -207,16 +222,14 @@ namespace FormSMSMultipleInstance
                 DeviceList[index].Status = "Connected";
                 DeviceList[index].DeviceNumber = device.GetOwnNumber();
                 RefreshGridView();
-
             }
             catch (Exception error)
             {
-                //MessageBox.Show(error.Message);
                 DeviceList[index].Status = error.Message;
                 RefreshGridView();
                 device.TryDisconnect();
             }
-            
+
             RefreshButton();
         }
 
@@ -224,8 +237,9 @@ namespace FormSMSMultipleInstance
         {
             try
             {
-                var modemNewSms = ConnectedDevices.FirstOrDefault(c => c.Modem.Port == ((GsmCommMain)sender).PortNumber);
-                
+                var modemNewSms =
+                    ConnectedDevices.FirstOrDefault(c => c.Modem.Port == ((GsmCommMain) sender).PortNumber);
+
                 Task.Factory.StartNew(() =>
                 {
                     if (modemNewSms != null) ReadUnreadMessages(modemNewSms);
@@ -248,15 +262,13 @@ namespace FormSMSMultipleInstance
                 bool.TryParse(MessageShow, out bool messageshow);
 
                 if (sendtoservice)
-                {
                     SmsPostClient.PostSms(sms);
-                }
 
                 if (messageshow)
-                {
-                    MessageBox.Show($@"Device {device.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}", device.GetOwnNumber());
-                }
-                
+                    MessageBox.Show(
+                        $@"Device {device.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}",
+                        device.GetOwnNumber());
+
                 device.DeleteMessage(sms.Index);
             }
         }
@@ -278,22 +290,19 @@ namespace FormSMSMultipleInstance
                 grdDevices.Refresh();
                 RefreshButton();
             }
-
         }
 
         private static bool DisconnectDevice(SmsModem device)
         {
             var isDisconnected = false;
-            
+
             device.TryDisconnect();
             ConnectedDevices.Remove(device);
 
             device.OGsmModem.MessageReceived -= Comm_MessageReceived;
 
             if (!device.OGsmModem.IsConnected())
-            {
                 isDisconnected = true;
-            }
 
             return isDisconnected;
         }
@@ -301,11 +310,9 @@ namespace FormSMSMultipleInstance
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             foreach (var device in ConnectedDevices)
-            {
                 device.TryDisconnect();
-            }
         }
-        
+
         private void BtnUpdateNumber_Click(object sender, EventArgs e)
         {
             Task.Factory.StartNew(UpdateContacNumber);
@@ -323,7 +330,6 @@ namespace FormSMSMultipleInstance
 
             if (selectedDevice != null && newContact != string.Empty)
             {
-
                 DeviceList[index].DeviceNumber = "Updating..";
 
                 RefreshGridView();
@@ -336,23 +342,18 @@ namespace FormSMSMultipleInstance
             }
 
             RefreshGridView();
-
         }
 
         private void BtnUpdate_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow selected in grdDevices.SelectedRows)
-            {
                 Task.Factory.StartNew(() => UpdateDevice(selected.Index));
-            }
         }
 
         private void BtnUpdateAll_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow selected in grdDevices.Rows)
-            {
                 Task.Factory.StartNew(() => UpdateDevice(selected.Index));
-            }
         }
 
         private void UpdateDevice(int index)
@@ -388,7 +389,6 @@ namespace FormSMSMultipleInstance
                     DeviceList[index].Status = "N/A";
                     RefreshGridView();
                 }
-
             }
             catch (Exception ex)
             {
@@ -426,17 +426,15 @@ namespace FormSMSMultipleInstance
 
         private void RefreshButton()
         {
-
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)RefreshButton);
+                Invoke((MethodInvoker) RefreshButton);
                 return;
             }
-            
+
             try
             {
-                //var selectedRow = (DataGridView)sender;
-                var NumberOfSelectedDevice = grdDevices.SelectedRows.Count;
+                var numberOfSelectedDevice = grdDevices.SelectedRows.Count;
 
                 var deviceName = grdDevices.SelectedRows[0].Cells[0].Value.ToString();
                 var portNumber = GetPortNumber(deviceName);
@@ -455,7 +453,7 @@ namespace FormSMSMultipleInstance
                     btnDisconnect.Enabled = false;
                 }
 
-                btnUpdateNumber.Enabled = btnUpdateNumber.Enabled && NumberOfSelectedDevice == 1;
+                btnUpdateNumber.Enabled = btnUpdateNumber.Enabled && numberOfSelectedDevice == 1;
             }
             catch
             {
@@ -465,15 +463,12 @@ namespace FormSMSMultipleInstance
 
         private void grdDevices_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-
         }
 
         private void btnRead_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow selected in grdDevices.SelectedRows)
-            {
                 Task.Factory.StartNew(() => ReadMessage(selected.Index));
-            }
         }
 
         private void ReadMessage(int index)
@@ -490,7 +485,10 @@ namespace FormSMSMultipleInstance
 
                 foreach (var sms in allmessaged)
                 {
-                    MessageBox.Show($@"Device {selectedDevice.Modem.Port} Has New Message From ({sms.Sender}), Contains: {sms.Message}", selectedDevice.GetOwnNumber());
+                    MessageBox.Show(
+                        $@"Device {selectedDevice.Modem.Port} Has New Message From ({sms.Sender}), Contains: {
+                                sms.Message
+                            }", selectedDevice.GetOwnNumber());
                     selectedDevice.DeleteMessage(sms.Index);
                 }
             }
